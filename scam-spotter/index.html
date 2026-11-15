@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Scam Spotter</title>
+  <style>
+    /* ===== Brand colors: navy + gold, in a Seabee-veteran palette ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      overflow: auto;
+    }
+
+    /* The whole game fills the embed (or the browser window). */
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ===== Shared type ===== */
+    h1 {
+      font-size: clamp(28px, 8vw, 40px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 18px;
+    }
+
+    .muted { color: var(--gold-soft); opacity: 0.85; }
+
+    /* ===== Start & end cards ===== */
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 26px 22px 22px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo {
+      display: block;
+      width: 72px;
+      height: 80px;
+      margin: 0 auto 4px;
+    }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+      color: var(--cream);
+    }
+
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 16px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    /* ===== Buttons ===== */
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--gold-deep);
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .btn-choice {
+      font-size: clamp(18px, 5vw, 22px);
+      font-weight: 800;
+      padding: 14px 10px 12px;
+      border-radius: 14px;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-choice small {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .btn-real {
+      background: var(--real);
+      box-shadow: 0 4px 0 var(--real-deep);
+    }
+
+    .btn-scam {
+      background: var(--scam);
+      box-shadow: 0 4px 0 var(--scam-deep);
+    }
+
+    .btn-choice:hover { filter: brightness(1.06); }
+    .btn-choice:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 currentColor;
+    }
+
+    .btn-choice:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ===== Play HUD ===== */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+
+    .hud strong {
+      color: var(--gold);
+      font-size: 18px;
+    }
+
+    .lives {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .life {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+    }
+
+    .life.gone {
+      background: transparent;
+      border: 2px solid rgba(243, 226, 160, 0.35);
+      box-shadow: none;
+    }
+
+    .streak {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-height: 1.2em;
+      margin-bottom: 8px;
+    }
+
+    /* Timer bar under the HUD. Shrinks as time runs out. */
+    .timer {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      border-radius: 999px;
+      transform-origin: left center;
+    }
+
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    /* ===== Message card (looks like a text, email, or pop-up) ===== */
+    .msg-card {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 16px;
+      padding: 16px 16px 18px;
+      min-height: 210px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .msg-type {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+      background: #EDE6D3;
+      color: var(--navy-light);
+    }
+
+    .msg-type.text { background: #D8EDE3; color: #146B42; }
+    .msg-type.email { background: #D9E4F2; color: #1C3B61; }
+    .msg-type.popup { background: #F8E0DC; color: #922B21; }
+
+    .msg-from {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .msg-address {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+      word-break: break-all;
+    }
+
+    .msg-subject {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 10px 0 8px;
+      line-height: 1.3;
+    }
+
+    .msg-body {
+      font-size: 14.5px;
+      line-height: 1.45;
+      color: #243040;
+    }
+
+    /* Shown as a link, but it is NOT a real <a href> — it cannot be clicked away. */
+    .fake-link {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: #EAF2FB;
+      color: #1C4E8A;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      word-break: break-all;
+      cursor: default;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    /* Feedback strip that slides over the card after each answer. */
+    .feedback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 18px 16px;
+      background: rgba(246, 241, 227, 0.96);
+      transform: translateY(100%);
+      transition: transform 0.22s ease;
+    }
+
+    .feedback.show { transform: translateY(0); }
+
+    .feedback .verdict {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .feedback.ok .verdict { color: var(--real); }
+    .feedback.bad .verdict { color: var(--scam); }
+
+    .feedback .tip {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    /* ===== End screen ===== */
+    .score-block { text-align: center; margin: 6px 0 16px; }
+
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+    }
+
+    .stats strong { color: var(--gold); }
+
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 16px;
+      margin: 8px 0 18px;
+    }
+
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .recap ol {
+      padding-left: 20px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .recap li { margin: 0 0 5px; }
+
+    .end-title {
+      text-align: center;
+      font-size: 20px;
+      color: var(--cream);
+      margin-bottom: 4px;
+    }
+
+    /* Slightly tighter spacing on short or narrow screens (phone embeds). */
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .msg-card { min-height: 190px; padding: 14px; }
+      .btn-choice { padding: 12px 8px 10px; }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .msg-card { min-height: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <!-- ===== START SCREEN ===== -->
+      <section id="screen-start" class="panel">
+        <!-- Simple shield + checkmark, drawn as inline SVG so we need no image files. -->
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <path d="M22 40 L32 50 L52 28" fill="none" stroke="#D4AF37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1>Scam Spotter</h1>
+        <p class="pitch">Can you spot the scam before it spots you?</p>
+        <ul class="howto">
+          <li>Messages appear one at a time. Decide if each one is <strong>Real</strong> or a <strong>Scam</strong>.</li>
+          <li>Be quick — a short timer is running, and you have 3 lives.</li>
+          <li>On a keyboard: <strong>R</strong> or ← for Real, <strong>S</strong> or → for Scam.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== PLAY SCREEN ===== -->
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Message<br><strong id="hud-progress">1 / 15</strong></div>
+          <div style="text-align:right">Lives
+            <div class="lives" id="hud-lives" aria-label="Lives remaining"></div>
+          </div>
+        </div>
+        <div class="streak" id="hud-streak"></div>
+        <div class="timer" id="timer"><div class="timer-fill" id="timer-fill"></div></div>
+
+        <article class="msg-card" id="msg-card">
+          <div id="msg-content"></div>
+          <div class="feedback" id="feedback">
+            <div class="verdict" id="feedback-verdict"></div>
+            <p class="tip" id="feedback-tip"></p>
+          </div>
+        </article>
+
+        <div class="choices">
+          <button type="button" class="btn-choice btn-real" id="btn-real">
+            Real
+            <small>R or ←</small>
+          </button>
+          <button type="button" class="btn-choice btn-scam" id="btn-scam">
+            Scam
+            <small>S or →</small>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== END SCREEN ===== -->
+      <section id="screen-end" class="panel hidden">
+        <p class="end-title" id="end-title">Round complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Accuracy<br><strong id="end-accuracy">0%</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap">
+          <h2>Top scam red flags</h2>
+          <ol>
+            <li>Urgent threats — “act now or your account closes.”</li>
+            <li>Odd or misspelled sender addresses.</li>
+            <li>Asks for gift cards, a wire, or crypto.</li>
+            <li>Unexpected links or “just call this number.”</li>
+            <li>“Don’t tell anyone” or “don’t call me back.”</li>
+          </ol>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Scam Spotter — a small teaching game about spotting scams.
+       Everything lives in this one file so it can be pasted into
+       a Google Sites embed (a sandboxed iframe).
+       ============================================================ */
+
+    // ----- Game rules (easy to tweak) -----
+    var ROUND_SIZE = 15;          // how many messages in one round
+    var START_LIVES = 3;
+    var START_SECONDS = 10;       // time allowed on the first message
+    var MIN_SECONDS = 6;          // timer never goes shorter than this
+    var TIME_STEP = 0.25;         // seconds shaved off after each message
+    var FEEDBACK_MS = 2300;       // how long the tip stays on screen
+    var BASE_POINTS = 100;
+    var STREAK_BONUS = 25;        // extra points per current streak
+    var BEST_KEY = "npnw-scam-spotter-best";
+
+    // ----- The message pool -----
+    // At least 30 invented, generic examples. Roughly half are scams.
+    // Domains, names, and 555 numbers are fake. Links are never real hrefs.
+    var MESSAGES = [
+      // ===== SCAMS =====
+      {
+        type: "email",
+        from: "ShopCart Security",
+        address: "support@shopcart-secure.co",
+        subject: "Unusual sign-in. Confirm now or we lock your account.",
+        body: "We noticed a login from another country. Confirm in the next 15 minutes or your orders will be cancelled.",
+        link: "shopcart-secure.co/unlock",
+        scam: true,
+        tip: "Scam: shopcart-secure.co is a look-alike domain, and the urgent lock threat is a pressure tactic."
+      },
+      {
+        type: "email",
+        from: "Northstar Bank",
+        address: "alerts@yourbank-alerts.net",
+        subject: "Your debit card is suspended",
+        body: "We froze your card after a $2,490 charge. Enter your PIN and Social Security number to restore access.",
+        link: "yourbank-alerts.net/restore",
+        scam: true,
+        tip: "Scam: yourbank-alerts.net is not your bank, and a real bank will not ask for your PIN or Social Security number by email."
+      },
+      {
+        type: "text",
+        from: "Mom",
+        address: "555-0138",
+        subject: "",
+        body: "Hey it's Mom, new phone. I'm stuck at the courthouse. Please buy $300 in gift cards and text me the codes. Don't call, I can't talk right now.",
+        scam: true,
+        tip: "Scam: a loved one who “can't talk” and wants gift cards is a classic family-emergency trick. Call them back on a number you already know."
+      },
+      {
+        type: "popup",
+        from: "Device Security",
+        address: "",
+        subject: "VIRUS DETECTED",
+        body: "Your computer is locked. Call Windows Support at 555-0199 now and pay the cleanup fee, or all files will be deleted in 20 minutes.",
+        scam: true,
+        tip: "Scam: pop-ups that demand you call a number or pay a fee are fake tech support. Close the window and don't call."
+      },
+      {
+        type: "email",
+        from: "Tax Refund Unit",
+        address: "refunds@irs-taxrefund.co",
+        subject: "You are owed a $1,284 refund",
+        body: "Claim your refund today. We need your banking login and a $49 processing fee paid by gift card.",
+        link: "irs-taxrefund.co/claim",
+        scam: true,
+        tip: "Scam: government agencies will not email you about a surprise refund or ask to be paid with gift cards."
+      },
+      {
+        type: "email",
+        from: "Prize Central",
+        address: "winner@youwontheprize.net",
+        subject: "Congratulations! You won $5,000",
+        body: "You were selected as this week's winner. Pay a $49 delivery fee to receive your check.",
+        link: "youwontheprize.net/claim",
+        scam: true,
+        tip: "Scam: real prizes don't ask you to pay a fee first, especially for a contest you never entered."
+      },
+      {
+        type: "text",
+        from: "StreamFlix",
+        address: "555-0174",
+        subject: "",
+        body: "Your StreamFlix bill failed. Update your card in the next hour or your account is cancelled.",
+        link: "streamflix-billing.co/pay",
+        scam: true,
+        tip: "Scam: check the link — streamflix-billing.co is not the real site, and unexpected “update your card” texts are a common trick."
+      },
+      {
+        type: "email",
+        from: "Jamie Chen, CFO",
+        address: "jamie.chen@northstar-bankk.com",
+        subject: "Need a quiet wire today",
+        body: "I'm in meetings. Please wire $8,750 to the account below and don't mention it in the team chat. I'll explain later.",
+        scam: true,
+        tip: "Scam: a boss asking for a secret wire transfer is a business-email trick. Always confirm by calling a number you already have."
+      },
+      {
+        type: "email",
+        from: "PayQuick Help",
+        address: "no-reply@payqulck-secure.com",
+        subject: "Your account will be limited",
+        body: "We noticed unusual activity. Confirm your password and card number to keep sending money.",
+        link: "payqulck-secure.com/confirm",
+        scam: true,
+        tip: "Scam: the domain is misspelled (payqulck), and a real payment app won't ask for your password and card on a surprise form."
+      },
+      {
+        type: "text",
+        from: "City Power",
+        address: "555-0162",
+        subject: "",
+        body: "FINAL NOTICE: Your electricity will be shut off today at 4 p.m. Pay immediately with a prepaid card.",
+        link: "citypower-pay.net",
+        scam: true,
+        tip: "Scam: utilities don't demand same-day payment by prepaid card over a text. Use the official site or the number on your bill."
+      },
+      {
+        type: "email",
+        from: "CareerLink Jobs",
+        address: "hiring@careerlink-offers.net",
+        subject: "You're hired — $42/hr work-from-home",
+        body: "No interview needed. To receive your company laptop, send a $200 equipment deposit by gift cards.",
+        scam: true,
+        tip: "Scam: real jobs don't ask you to pay for your own hiring paperwork or laptop with gift cards."
+      },
+      {
+        type: "email",
+        from: "CloudMail Admin",
+        address: "admin@cloudmail-upgrade.co",
+        subject: "Mailbox almost full — verify now",
+        body: "You are at 99% storage. Enter your password today or your email will be deleted.",
+        link: "cloudmail-upgrade.co/verify",
+        scam: true,
+        tip: "Scam: “your mailbox is full, enter your password” is a phishing classic. Open the app yourself instead of following a surprise link."
+      },
+      {
+        type: "text",
+        from: "Social Security",
+        address: "555-0104",
+        subject: "",
+        body: "Your Social Security number has been suspended due to criminal activity. Call 555-0188 immediately to avoid arrest.",
+        scam: true,
+        tip: "Scam: Social Security will not text that your number is suspended or threaten arrest. Look up the official number yourself."
+      },
+      {
+        type: "email",
+        from: "Hope Relief Charity",
+        address: "donate@hope-relief-now.co",
+        subject: "Urgent: storm victims need you",
+        body: "We can only take gift cards today. Buy $100 cards and email the codes so aid can go out tonight.",
+        scam: true,
+        tip: "Scam: even after a real disaster, a charity asking for gift-card codes is a red flag. Give through a group you already know."
+      },
+      {
+        type: "email",
+        from: "YardSale Marketplace",
+        address: "payments@yardsale-pay.net",
+        subject: "Buyer sent $620 for your bike",
+        body: "A buyer paid for your listing. Enter your bank login so we can ship and deposit the money.",
+        link: "yardsale-pay.net/release",
+        scam: true,
+        tip: "Scam: a marketplace email asking you to log in to “release a payment” you weren't expecting is trying to steal your account."
+      },
+      {
+        type: "popup",
+        from: "Court Notice",
+        address: "",
+        subject: "Warrant issued",
+        body: "A warrant has been issued in your name for unpaid tickets. Pay $480 in crypto or gift cards to cancel it.",
+        link: "court-pay-now.co",
+        scam: true,
+        tip: "Scam: courts do not send pop-ups or demand crypto or gift cards to cancel a warrant."
+      },
+      {
+        type: "email",
+        from: "CryptoGrow",
+        address: "profits@cryptogrow-invest.net",
+        subject: "Guaranteed 10% weekly returns",
+        body: "Deposit today and watch your money grow. Our system never loses. Send Bitcoin to get started, then recruit two friends.",
+        scam: true,
+        tip: "Scam: “guaranteed” investment returns, especially with crypto and a request to recruit friends, are a hallmark of a scam."
+      },
+      {
+        type: "text",
+        from: "Unknown",
+        address: "555-0195",
+        subject: "",
+        body: "This is Officer Hale. Your grandson was in a wreck and needs $1,500 in bail. Don't tell the family yet — send the money to this address.",
+        scam: true,
+        tip: "Scam: the “don't tell the family, send bail money” story is a well-known grandparent trick. Hang up and call your family directly."
+      },
+      // ===== LEGIT MESSAGES =====
+      {
+        type: "text",
+        from: "Priya",
+        address: "555-0121",
+        subject: "",
+        body: "Hey, are we still on for pickleball Saturday at 9? I booked court 3 at the rec center.",
+        scam: false,
+        tip: "Real: a friend confirming plans, with no request for money or a login, is an ordinary text."
+      },
+      {
+        type: "email",
+        from: "Oak Street Library",
+        address: "notices@oakstreetlibrary.org",
+        subject: "Your book is due Thursday",
+        body: "Just a reminder: The Thursday Murder Club is due this Thursday. Renew it from your account on our site, or drop it in the bin out front.",
+        scam: false,
+        tip: "Real: a library due-date reminder that doesn't demand payment or a password is typically legit."
+      },
+      {
+        type: "email",
+        from: "Riverside Family Clinic",
+        address: "appointments@riversideclinic.org",
+        subject: "Appointment reminder: Tuesday 10:30 a.m.",
+        body: "This is a reminder of your checkup on Tuesday at 10:30 a.m. To reschedule, call the office at 555-0110.",
+        scam: false,
+        tip: "Real: an appointment reminder that points you to a phone number, with no urgent payment link, looks legit."
+      },
+      {
+        type: "text",
+        from: "Dan (neighbor)",
+        address: "555-0144",
+        subject: "",
+        body: "Thanks again for lending me the trimmer. I'll drop it back on your porch after work.",
+        scam: false,
+        tip: "Real: a neighbor following up on a borrowed tool, with no payment ask, is a normal message."
+      },
+      {
+        type: "email",
+        from: "Maple Grove HOA",
+        address: "office@maplegrovehoa.org",
+        subject: "HOA meeting next Wednesday, 7 p.m.",
+        body: "Our monthly meeting is Wednesday at 7 p.m. in the clubhouse. Agenda: pool hours and the spring clean-up. No payment is due.",
+        scam: false,
+        tip: "Real: a meeting notice with a clear agenda and no surprise fee is a typical community email."
+      },
+      {
+        type: "email",
+        from: "FreshField Market",
+        address: "deals@freshfieldmarket.com",
+        subject: "This week's ad: berries and chicken on sale",
+        body: "You signed up for our weekly ad. Strawberries $1.99/lb and a rotisserie chicken special through Sunday. Unsubscribe anytime at the bottom of this email.",
+        scam: false,
+        tip: "Real: a store ad you can unsubscribe from, with no “update your card now” threat, is usually fine."
+      },
+      {
+        type: "text",
+        from: "Mia",
+        address: "555-0167",
+        subject: "",
+        body: "Kids are with me tonight. Want to do tacos at our place around 6? Bring nothing but yourself.",
+        scam: false,
+        tip: "Real: a family dinner invite with no money or link attached is a normal text."
+      },
+      {
+        type: "email",
+        from: "Lincoln Middle School",
+        address: "attendance@lincolnms.edu",
+        subject: "Spirit week starts Monday",
+        body: "Spirit week kicks off Monday. Tuesday is college-colors day. Picture day is Friday. Dress down if you like — no fee this year.",
+        scam: false,
+        tip: "Real: a school schedule note that doesn't request money or personal data is typically legit."
+      },
+      {
+        type: "email",
+        from: "County Alert System",
+        address: "alerts@countyalerts.gov",
+        subject: "Wind advisory tonight until 6 a.m.",
+        body: "A wind advisory is in effect for our county tonight. Secure loose yard items and use caution while driving.",
+        scam: false,
+        tip: "Real: a weather advisory with safety advice and no payment or login request is a public alert."
+      },
+      {
+        type: "email",
+        from: "Harbor Fitness",
+        address: "front-desk@harborfitness.com",
+        subject: "Saturday yoga is moving to Studio B",
+        body: "Heads up: Saturday 8 a.m. yoga is in Studio B this week while the main room is being waxed. Your membership is unchanged.",
+        scam: false,
+        tip: "Real: a class-location update with no billing scare or odd link is a normal gym email."
+      },
+      {
+        type: "email",
+        from: "Dr. Patel Dentistry",
+        address: "office@pateldentistry.com",
+        subject: "You're all set for Friday at 2:00",
+        body: "This confirms your cleaning on Friday at 2:00 p.m. If you need to move it, call us at 555-0155. Please bring your insurance card.",
+        scam: false,
+        tip: "Real: a confirmation of an appointment you made, asking you to call the office number, is typically legit."
+      },
+      {
+        type: "text",
+        from: "Alex",
+        address: "555-0181",
+        subject: "",
+        body: "Here's that chili recipe I promised. Brown the beef, add tomatoes, chili powder, and let it simmer 30 minutes. Easy.",
+        scam: false,
+        tip: "Real: a friend sharing a recipe, with no link or request for money, is an ordinary text."
+      },
+      {
+        type: "email",
+        from: "City Water Department",
+        address: "notices@citywater.gov",
+        subject: "Scheduled maintenance on Elm Street, Thursday",
+        body: "Water may be off on Elm Street Thursday from 9 a.m. to noon while we replace a valve. Call 555-0100 with questions.",
+        scam: false,
+        tip: "Real: a scheduled-maintenance notice that doesn't demand payment is a typical utility update."
+      },
+      {
+        type: "email",
+        from: "BrightPath Insurance",
+        address: "claims@brightpathins.com",
+        subject: "Explanation of benefits for your May visit",
+        body: "Your explanation of benefits for the May 12 clinic visit is now in your member portal. This is not a bill. For questions, call the number on your member card.",
+        scam: false,
+        tip: "Real: an explanation of benefits that says it is not a bill and points you to a number you already have is a normal insurance notice."
+      },
+      {
+        type: "text",
+        from: "Sam",
+        address: "555-0129",
+        subject: "",
+        body: "Happy birthday! Dinner is still at Grandma's at 5. I'll pick up the cake.",
+        scam: false,
+        tip: "Real: a birthday plan from someone you know, with no urgent money request, is a normal message."
+      },
+      {
+        type: "email",
+        from: "Community Church",
+        address: "office@communitychurch.org",
+        subject: "Potluck this Sunday after the 10 a.m. service",
+        body: "You're invited to a potluck in the fellowship hall this Sunday. Bring a dish if you can — no sign-up needed.",
+        scam: false,
+        tip: "Real: a potluck invitation with no payment demand is a typical community email."
+      },
+      {
+        type: "email",
+        from: "Westfield Auto Shop",
+        address: "service@westfieldauto.com",
+        subject: "Your oil change is finished",
+        body: "Your car is ready. Total is the $49.95 estimate you approved. Pickup is at the front desk until 6 p.m. Call 555-0133 if you need a ride to the shop.",
+        scam: false,
+        tip: "Real: a shop following up on work you already approved, at the price you agreed to, is a normal service message."
+      },
+      {
+        type: "email",
+        from: "Jordan Lee",
+        address: "jordan.lee@emailmail.com",
+        subject: "Notes from Tuesday's PTA meeting",
+        body: "Hi folks, here are my notes from Tuesday: book fair is March 3–7, and we still need two volunteers for Friday. Reply to me if you can help.",
+        scam: false,
+        tip: "Real: meeting notes from a person you know, with a volunteer ask instead of a payment link, look legitimate."
+      }
+    ];
+
+    // ----- Grab the pieces of the page we will update -----
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenEnd = document.getElementById("screen-end");
+    var startBest = document.getElementById("start-best");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudLives = document.getElementById("hud-lives");
+    var hudStreak = document.getElementById("hud-streak");
+    var timerEl = document.getElementById("timer");
+    var timerFill = document.getElementById("timer-fill");
+    var msgContent = document.getElementById("msg-content");
+    var feedbackEl = document.getElementById("feedback");
+    var feedbackVerdict = document.getElementById("feedback-verdict");
+    var feedbackTip = document.getElementById("feedback-tip");
+    var btnReal = document.getElementById("btn-real");
+    var btnScam = document.getElementById("btn-scam");
+    var btnPlay = document.getElementById("btn-play");
+    var btnAgain = document.getElementById("btn-again");
+
+    // ----- Live game state -----
+    var deck = [];
+    var index = 0;
+    var score = 0;
+    var lives = START_LIVES;
+    var streak = 0;
+    var correctCount = 0;
+    var answeredCount = 0;
+    var locked = false;          // true while a tip is showing, so you can't double-tap
+    var timerId = null;
+    var timeLeft = 0;
+    var timeLimit = START_SECONDS;
+    var lastTick = 0;
+    var audioCtx = null;         // created after the first Play click (browsers require a gesture)
+
+    // ----- Safe localStorage (sandboxed iframes may block it) -----
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    // ----- Tiny sound effects (optional — silent if Web Audio is missing) -----
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundCorrect() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+
+    function soundWrong() { beep(180, 0.28, "sawtooth", 0.05); }
+    function soundTimeout() { beep(320, 0.35, "triangle", 0.05); }
+
+    // ----- Helpers -----
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+
+    // Deal a mixed round: about half scams, half real, then shuffle.
+    function dealRound() {
+      var scams = shuffle(MESSAGES.filter(function (m) { return m.scam; }));
+      var reals = shuffle(MESSAGES.filter(function (m) { return !m.scam; }));
+      var scamCount = Math.random() < 0.5 ? 8 : 7;
+      var realCount = ROUND_SIZE - scamCount;
+      return shuffle(scams.slice(0, scamCount).concat(reals.slice(0, realCount)));
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+
+    function drawLives() {
+      var html = "";
+      for (var i = 0; i < START_LIVES; i++) {
+        html += '<span class="life' + (i < lives ? "" : " gone") + '"></span>';
+      }
+      hudLives.innerHTML = html;
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (index + 1) + " / " + ROUND_SIZE;
+      hudStreak.textContent = streak >= 2 ? "Streak ×" + streak + "  •  bonus points!" : "";
+      drawLives();
+    }
+
+    function typeLabel(type) {
+      if (type === "text") return "Text message";
+      if (type === "popup") return "Pop-up";
+      return "Email";
+    }
+
+    // Build the card for the current message. Links are plain text, not <a> tags.
+    function renderMessage(msg) {
+      var html = '<span class="msg-type ' + msg.type + '">' + typeLabel(msg.type) + "</span>";
+      html += '<div class="msg-from">' + escapeHtml(msg.from) + "</div>";
+      if (msg.address) {
+        html += '<div class="msg-address">' + escapeHtml(msg.address) + "</div>";
+      }
+      if (msg.subject) {
+        html += '<div class="msg-subject">' + escapeHtml(msg.subject) + "</div>";
+      }
+      html += '<p class="msg-body">' + escapeHtml(msg.body) + "</p>";
+      if (msg.link) {
+        html += '<span class="fake-link">' + escapeHtml(msg.link) + "</span>";
+      }
+      msgContent.innerHTML = html;
+
+      // data-correct lets automated tests click the right button. Players don't see it.
+      document.body.setAttribute("data-correct", msg.scam ? "scam" : "real");
+      document.body.setAttribute("data-phase", "playing");
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        cancelAnimationFrame(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      timeLimit = Math.max(MIN_SECONDS, START_SECONDS - index * TIME_STEP);
+      timeLeft = timeLimit;
+      lastTick = performance.now();
+      timerEl.classList.remove("warn", "danger");
+      timerFill.style.transform = "scaleX(1)";
+
+      function tick(now) {
+        var dt = (now - lastTick) / 1000;
+        lastTick = now;
+        timeLeft -= dt;
+        var pct = Math.max(0, timeLeft / timeLimit);
+        timerFill.style.transform = "scaleX(" + pct + ")";
+        timerEl.classList.toggle("warn", pct < 0.4 && pct >= 0.2);
+        timerEl.classList.toggle("danger", pct < 0.2);
+        if (timeLeft <= 0) {
+          timerId = null;
+          settleAnswer(null, true);
+          return;
+        }
+        timerId = requestAnimationFrame(tick);
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    function showMessage() {
+      locked = false;
+      btnReal.disabled = false;
+      btnScam.disabled = false;
+      feedbackEl.classList.remove("show", "ok", "bad");
+      renderMessage(deck[index]);
+      updateHud();
+      startTimer();
+    }
+
+    // guess is true for "Scam", false for "Real". timedOut means the player ran out of time.
+    function settleAnswer(guess, timedOut) {
+      if (locked) return;
+      locked = true;
+      stopTimer();
+      btnReal.disabled = true;
+      btnScam.disabled = true;
+
+      var msg = deck[index];
+      var correct = !timedOut && guess === msg.scam;
+      answeredCount += 1;
+
+      var verdict;
+      if (timedOut) {
+        lives -= 1;
+        streak = 0;
+        soundTimeout();
+        verdict = "Time's up";
+        feedbackEl.classList.add("bad");
+      } else if (correct) {
+        streak += 1;
+        correctCount += 1;
+        var gained = BASE_POINTS + (streak - 1) * STREAK_BONUS;
+        score += gained;
+        soundCorrect();
+        verdict = "Correct  +" + gained;
+        feedbackEl.classList.add("ok");
+      } else {
+        lives -= 1;
+        streak = 0;
+        soundWrong();
+        verdict = "Missed it";
+        feedbackEl.classList.add("bad");
+      }
+
+      feedbackVerdict.textContent = verdict;
+      feedbackTip.textContent = msg.tip;
+      feedbackEl.classList.add("show");
+      updateHud();
+      document.body.setAttribute("data-phase", "feedback");
+
+      setTimeout(advance, FEEDBACK_MS);
+    }
+
+    function advance() {
+      var outOfLives = lives <= 0;
+      var finishedRound = index >= ROUND_SIZE - 1;
+      if (outOfLives || finishedRound) {
+        endGame(outOfLives);
+        return;
+      }
+      index += 1;
+      showMessage();
+    }
+
+    function startGame() {
+      unlockAudio();
+      deck = dealRound();
+      index = 0;
+      score = 0;
+      lives = START_LIVES;
+      streak = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      showScreen("play");
+      showMessage();
+    }
+
+    function endGame(outOfLives) {
+      stopTimer();
+      document.body.removeAttribute("data-correct");
+      document.body.setAttribute("data-phase", "end");
+
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(best);
+
+      document.getElementById("end-title").textContent = outOfLives ? "Out of lives" : "Round complete";
+      document.getElementById("end-score").textContent = score;
+      var denom = answeredCount || 1;
+      var pct = Math.round((correctCount / denom) * 100);
+      document.getElementById("end-accuracy").textContent = correctCount + "/" + answeredCount + " (" + pct + "%)";
+      document.getElementById("end-best").textContent = best;
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    // ----- Clicks and keyboard -----
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnReal.addEventListener("click", function () { settleAnswer(false, false); });
+    btnScam.addEventListener("click", function () { settleAnswer(true, false); });
+
+    document.addEventListener("keydown", function (event) {
+      var key = event.key;
+      // Enter starts or restarts the game from the menu screens.
+      if (key === "Enter") {
+        if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+          startGame();
+        }
+        return;
+      }
+      if (screenPlay.classList.contains("hidden") || locked) return;
+      if (key === "ArrowLeft" || key === "r" || key === "R") {
+        event.preventDefault();
+        settleAnswer(false, false);
+      } else if (key === "ArrowRight" || key === "s" || key === "S") {
+        event.preventDefault();
+        settleAnswer(true, false);
+      }
+    });
+
+    // Kick off the start screen (including a stored best score, if any).
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+  </script>
+</body>
+</html>
