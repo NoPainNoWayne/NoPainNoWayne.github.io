@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Scam Call Scramble</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as Scam Spotter and Password Builder) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(28px, 8vw, 40px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    /* ===== Start & end panels ===== */
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    /* ===== Buttons ===== */
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    .btn-sound {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--gold-soft);
+      border: 1.5px solid rgba(212, 175, 55, 0.55);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 12px;
+      min-height: 36px;
+    }
+    .btn-sound.off { color: rgba(243, 226, 160, 0.6); border-style: dashed; }
+
+    .sound-row { display: flex; justify-content: center; margin-bottom: 12px; }
+
+    /* ===== Play HUD (same shape as the other games) ===== */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud strong { color: var(--gold); font-size: 18px; }
+
+    .lives { display: flex; gap: 5px; align-items: center; justify-content: flex-end; margin-top: 3px; }
+    .life {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.25);
+    }
+    .life.gone { background: transparent; border: 2px solid rgba(243, 226, 160, 0.35); box-shadow: none; }
+
+    /* ===== The phone call card ===== */
+    .call {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      overflow: clip; /* never let the card itself scroll (keeps the caller header in view) */
+      position: relative;
+    }
+
+    .call-head {
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      color: var(--cream);
+      padding: 10px 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 3px solid var(--gold);
+    }
+
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .ringing .avatar { animation: ring 0.5s ease-in-out infinite; }
+    @keyframes ring { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+
+    .caller { flex: 1 1 auto; min-width: 0; }
+    .caller-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-soft); opacity: 0.85; }
+    .caller-name { font-size: 17px; font-weight: 800; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .caller-num { font-size: 12.5px; color: var(--cream); opacity: 0.8; }
+
+    .call-clock { text-align: right; font-size: 11px; color: var(--gold-soft); letter-spacing: 0.06em; text-transform: uppercase; }
+    .call-clock strong { display: block; font-size: 18px; color: var(--cream); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+
+    .timer { height: 7px; background: #E9E1CC; overflow: hidden; }
+    .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-soft)); transform-origin: left center; }
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    .transcript {
+      height: 292px;
+      overflow-y: auto;
+      padding: 12px 12px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scroll-behavior: smooth;
+    }
+
+    .bubble {
+      position: relative;
+      text-align: left;
+      background: #EFE8D6;
+      color: var(--ink);
+      border: 2px solid transparent;
+      border-radius: 4px 14px 14px 14px;
+      padding: 9px 12px 9px;
+      font-size: 15px;
+      line-height: 1.4;
+      max-width: 94%;
+      min-height: 44px;
+      flex: 0 0 auto;
+      opacity: 0.72;
+      transition: opacity 0.2s, border-color 0.2s, background 0.2s;
+      animation: pop 0.22s ease-out;
+    }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; } }
+
+    .bubble.active {
+      opacity: 1;
+      background: #FFF6D8;
+      border-color: var(--gold);
+      box-shadow: 0 3px 10px rgba(184, 148, 31, 0.25);
+    }
+    .bubble.active::before {
+      content: "SPEAKING";
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--gold-deep);
+      margin-bottom: 2px;
+    }
+    .bubble.ask { border-style: dashed; border-color: var(--navy-light); opacity: 1; }
+    .bubble.ask::before { content: "THE CALLER ASKS"; display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--navy-light); margin-bottom: 2px; }
+
+    .bubble.flagged { opacity: 1; background: #FBE3DF; border-color: var(--scam); border-style: solid; }
+    .bubble.harmless { opacity: 1; background: #E3EEE8; border-color: var(--real); animation: shake 0.35s; }
+    .bubble.missed { opacity: 1; border: 2px dashed var(--scam); background: #FFF; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+    .tag {
+      display: inline-block;
+      margin-top: 5px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .tag.red { background: var(--scam); color: #fff; }
+    .tag.green { background: var(--real); color: #fff; }
+    .tag.miss { background: #fff; color: var(--scam); border: 1.5px solid var(--scam); }
+
+    .float-pts {
+      position: absolute; right: 10px; top: 6px;
+      font-weight: 800; font-size: 14px;
+      animation: rise 0.9s ease-out forwards;
+      pointer-events: none;
+    }
+    .float-pts.plus { color: var(--scam); }
+    .float-pts.minus { color: var(--real); }
+    @keyframes rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-18px); opacity: 0; } }
+
+    .call-hint { font-size: 12px; color: var(--muted); text-align: center; padding: 4px 10px 8px; min-height: 26px; }
+
+    /* Big red-flag button under the card */
+    .btn-flag {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      margin-top: 12px;
+      background: var(--scam);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      padding: 14px 10px 12px;
+      min-height: 60px;
+      border-radius: 14px;
+      box-shadow: 0 4px 0 var(--scam-deep);
+    }
+    .btn-flag small { font-size: 11px; font-weight: 600; opacity: 0.85; letter-spacing: 0.06em; }
+    .btn-flag:hover { filter: brightness(1.06); }
+    .btn-flag:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--scam-deep); }
+    .btn-flag:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    /* Decision choices */
+    .decision { margin-top: 12px; }
+    .decision-title { text-align: center; font-weight: 800; color: var(--gold); font-size: 15px; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .choice {
+      display: block; width: 100%;
+      text-align: left;
+      background: var(--navy-light);
+      color: var(--cream);
+      border: 2px solid rgba(212, 175, 55, 0.6);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 12px 14px;
+      min-height: 50px;
+      margin-bottom: 8px;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    }
+    .choice .key { display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: var(--gold); color: var(--navy); font-size: 13px; margin-right: 8px; }
+    .choice:hover { border-color: var(--gold); }
+    .choice:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35); }
+
+    /* Result strip that slides over the transcript */
+    .result {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      top: 74px;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 16px 16px;
+      background: rgba(246, 241, 227, 0.97);
+      transform: translateY(105%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+    }
+    .result.show { transform: translateY(0); }
+    .result .verdict { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .result.ok .verdict { color: var(--real); }
+    .result.bad .verdict { color: var(--scam); }
+    .result .tip { font-size: 15px; line-height: 1.45; color: var(--ink); margin-bottom: 10px; }
+    .result .flag-sum { font-size: 14px; color: var(--ink); line-height: 1.45; background: #EFE8D6; border-radius: 10px; padding: 8px 10px; margin-bottom: 12px; }
+    .result .flag-sum strong { color: var(--scam); }
+    .result .flag-sum strong.all { color: var(--real); }
+    .btn-next { font-size: 19px; padding: 11px 20px; }
+
+    /* ===== End screen ===== */
+    .end-title { text-align: center; font-size: 20px; color: var(--cream); margin-bottom: 4px; }
+    .score-block { text-align: center; margin: 6px 0 12px; }
+    .score-label { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 4px; }
+    .final-score { font-size: clamp(36px, 10vw, 48px); font-weight: 800; color: var(--gold); line-height: 1; }
+    .stats { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 22px; margin: 10px 0 4px; font-size: 14px; }
+    .stats strong { color: var(--gold); font-size: 16px; }
+    .new-best { color: var(--gold); font-weight: 700; margin-top: 6px; min-height: 1.2em; }
+
+    .recap { background: rgba(0, 0, 0, 0.22); border-radius: 12px; padding: 12px 14px 12px 16px; margin: 6px 0 16px; }
+    .recap h2 { font-size: 14px; color: var(--gold); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+    .recap ol { padding-left: 20px; font-size: 14px; line-height: 1.45; }
+    .recap li { margin: 0 0 5px; }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 18px 14px 14px; }
+      .transcript { height: 300px; padding: 10px 9px 6px; }
+      .bubble { font-size: 14.5px; max-width: 97%; }
+      .caller-name { font-size: 16px; }
+      .choice { font-size: 15px; padding: 11px 12px; }
+    }
+
+    @media (max-height: 700px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .transcript { height: 240px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <!-- ===== START SCREEN ===== -->
+      <section id="screen-start" class="panel">
+        <!-- Shield with a phone handset, drawn as inline SVG (no image files). -->
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <path d="M24 26 c3-3 6-2 7 1 l2 5 c1 2 0 4-2 5 l-2 1 c2 5 5 8 10 10 l1-2 c1-2 3-3 5-2 l5 2 c3 1 4 4 1 7 c-3 3-8 4-13 1 c-6-3-11-8-14-14 c-3-5-3-11 0-14 z" fill="#D4AF37"/>
+        </svg>
+        <h1>Scam Call Scramble</h1>
+        <p class="pitch">Your phone is ringing. Can you catch the scam before it catches you?</p>
+        <ul class="howto">
+          <li>Listen to a fake robocall. The words show up on screen as it talks.</li>
+          <li>Hear a red flag? Tap that line, or hit <strong>Red Flag!</strong> while it's speaking.</li>
+          <li>At the end, the caller asks you to do something. Pick wisely, because falling for it costs a life. You have 3.</li>
+          <li>Keyboard: <strong>Space</strong> = Red Flag, <strong>1 2 3</strong> = choices.</li>
+        </ul>
+        <div class="sound-row">
+          <button type="button" class="btn-sound" id="btn-sound-start" aria-pressed="true">Sound: On</button>
+        </div>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Answer the call</button>
+        <p class="fake-note">All calls are fake practice calls. Real agencies never ask for gift cards.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== PLAY SCREEN ===== -->
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Call<br><strong id="hud-progress">1 / 5</strong></div>
+          <div style="text-align:right">Lives
+            <div class="lives" id="hud-lives" aria-label="Lives remaining"></div>
+          </div>
+        </div>
+
+        <article class="call" id="call">
+          <div class="call-head" id="call-head">
+            <div class="avatar" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 3 c2-1 4 0 4.5 2 l1 3 c.4 1.3-.2 2.4-1.3 3 l-1 .5 c1.2 2.8 3 4.6 5.6 5.8 l.6-1 c.6-1.1 1.8-1.6 3-1.2 l3 1 c2 .6 2.6 2.6 1.4 4.3 c-1.6 2.2-4.6 2.8-7.8 1.2 c-4.2-2-7.4-5.3-9.4-9.6 c-1.5-3.3-1-6.6 .4-8 z" fill="#D4AF37"/></svg>
+            </div>
+            <div class="caller">
+              <div class="caller-label" id="caller-label">Incoming call</div>
+              <div class="caller-name" id="caller-name">Unknown</div>
+              <div class="caller-num" id="caller-num"></div>
+            </div>
+            <div class="call-clock">Call time<strong id="call-clock">0:00</strong></div>
+          </div>
+          <div class="timer" id="timer" title="Time left on this call"><div class="timer-fill" id="timer-fill"></div></div>
+          <div class="transcript" id="transcript" aria-live="polite"></div>
+          <div class="call-hint" id="call-hint"></div>
+
+          <div class="result" id="result">
+            <div class="verdict" id="result-verdict"></div>
+            <p class="tip" id="result-tip"></p>
+            <div class="flag-sum" id="result-flags"></div>
+            <button type="button" class="btn-play btn-next" id="btn-next">Next call</button>
+          </div>
+        </article>
+
+        <button type="button" class="btn-flag" id="btn-flag">
+          <svg width="22" height="24" viewBox="0 0 22 24" aria-hidden="true"><path d="M3 1 V23" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M4 2 H19 L15 7.5 L19 13 H4 Z" fill="#fff"/></svg>
+          <span>Red Flag! <small>SPACE</small></span>
+        </button>
+
+        <div class="decision hidden" id="decision">
+          <div class="decision-title">What do you do?</div>
+          <div id="choices"></div>
+        </div>
+
+        <div class="sound-row" style="margin:10px 0 0">
+          <button type="button" class="btn-sound" id="btn-sound-play" aria-pressed="true">Sound: On</button>
+        </div>
+      </section>
+
+      <!-- ===== END SCREEN ===== -->
+      <section id="screen-end" class="panel hidden">
+        <p class="end-title" id="end-title">Shift complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Flags caught<br><strong id="end-caught">0</strong></div>
+            <div>Missed<br><strong id="end-missed">0</strong></div>
+            <div>Safe calls<br><strong id="end-safe">0</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap">
+          <h2>3 things to remember</h2>
+          <ol>
+            <li>Hang up, then call the official number yourself, from your card, bill, or the agency's real website.</li>
+            <li>Real agencies and banks never demand gift cards, crypto, or a wire transfer.</li>
+            <li>Never share a code they texted you, your SSN, or bank info with someone who called you.</li>
+          </ol>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="fake-note">All calls are fake practice calls. Real agencies never ask for gift cards.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Scam Call Scramble: a small teaching game about scam robocalls.
+       Everything is in this one file so it can be pasted into a
+       Google Sites embed (a sandboxed iframe). No network requests.
+       All code and sounds are original (sounds are generated live
+       with the browser's WebAudio oscillators; voice is the browser's
+       own built-in speech, if it has one).
+       ============================================================ */
+
+    // ----- Game rules (easy to tweak) -----
+    var CALLS_PER_GAME = 5;
+    var START_LIVES = 3;
+    var PTS_FLAG_LIVE = 100;     // flagged while the line is speaking
+    var PTS_FLAG_LATE = 50;      // flagged after it moved on (still on the call)
+    var PTS_WRONG_FLAG = -25;    // tapped a harmless line
+    var PTS_SAFE_CHOICE = 150;   // hung up / called the real number
+    var PTS_PERFECT = 100;       // bonus: every flag caught AND safe choice
+    var BEST_KEY = "npnw-scam-call-scramble-best";
+    // Testing aid only: add #fast to the URL to speed lines up 5x. Players never see this.
+    var SPEED = /fast/.test(String(location.hash)) ? 0.2 : 1;
+
+    /* ----- The call scripts -----
+       Every name and number is invented. 555-01xx numbers are reserved
+       for fiction. Each line: t = caption text, flag = true if it's a
+       red flag, why = short label shown when flagged.
+       audio: "" is a hook for later. Put a data: URI or a relative
+       file name there and that clip plays instead of the built-in voice. */
+    var SCRIPTS = [
+      {
+        id: "irs",
+        caller: "IRS Tax Unit",
+        number: "(555) 010-0142",
+        voice: { pitch: 0.8, rate: 1.0 },
+        lines: [
+          { t: "Hello, this is Officer Daniels with the IRS, badge number 4-4-7.", flag: false, audio: "" },
+          { t: "There is a warrant out for your arrest for unpaid back taxes.", flag: true, why: "Threat of arrest", audio: "" },
+          { t: "Local police will come to your home within the hour.", flag: true, why: "Fake urgency", audio: "" },
+          { t: "We understand this is stressful, and we want to help resolve it today.", flag: false, audio: "" },
+          { t: "You can clear the balance right now with Apple or Google gift cards from any store.", flag: true, why: "Gift card payment", audio: "" },
+          { t: "Do not hang up and do not talk to your family about this.", flag: true, why: "Secrecy", audio: "" }
+        ],
+        ask: "Press 1 to speak with an officer and settle the warrant now.",
+        choices: [
+          { label: "Press 1 to settle it", safe: false, tip: "The IRS sends letters first and never threatens arrest on the phone or asks for gift cards. Hang up." },
+          { label: "Hang up", safe: true, tip: "Right call. The real IRS contacts you by mail first and never demands gift cards." },
+          { label: "Hang up and check my account on the real IRS website", safe: true, tip: "Perfect. Go to the agency yourself instead of trusting the caller." }
+        ]
+      },
+      {
+        id: "ssa",
+        caller: "Social Security",
+        number: "(555) 010-0118",
+        voice: { pitch: 0.95, rate: 1.0 },
+        lines: [
+          { t: "This is an important message from the Social Security Administration.", flag: false, audio: "" },
+          { t: "Your Social Security number has been suspended due to suspicious activity.", flag: true, why: "Fake 'suspended' threat", audio: "" },
+          { t: "Your benefits will stop and your bank accounts will be frozen today.", flag: true, why: "Scare tactic", audio: "" },
+          { t: "Thank you for your years of service and contributions.", flag: false, audio: "" },
+          { t: "To verify your identity, say your full Social Security number after the tone.", flag: true, why: "Asks for SSN", audio: "" }
+        ],
+        ask: "Read me your full Social Security number now so we can reactivate it.",
+        choices: [
+          { label: "Read my number to verify", safe: false, tip: "Social Security numbers don't get 'suspended.' Never give your SSN to someone who called you." },
+          { label: "Hang up", safe: true, tip: "Good. The real agency won't call to threaten you or ask you to read out your number." },
+          { label: "Hang up and call the number on my benefits letter", safe: true, tip: "Smart. Use a number you already trust, not the one the caller gave you." }
+        ]
+      },
+      {
+        id: "grandkid",
+        caller: "Unknown Caller",
+        number: "(555) 010-0177",
+        voice: { pitch: 1.25, rate: 1.1 },
+        lines: [
+          { t: "Grandma? Grandpa? It's me. Can you hear me okay?", flag: false, audio: "" },
+          { t: "I was in a car accident and they took me to jail. I need help right now.", flag: true, why: "Emergency pressure", audio: "" },
+          { t: "My voice sounds different because my nose got hurt.", flag: true, why: "Excuse for wrong voice", audio: "" },
+          { t: "I love you, and I'm sorry I haven't called in a while.", flag: false, audio: "" },
+          { t: "Please don't tell Mom and Dad. They'll be so mad at me.", flag: true, why: "Secrecy", audio: "" },
+          { t: "My lawyer says bail is two thousand dollars, sent by wire or crypto.", flag: true, why: "Wire / crypto payment", audio: "" }
+        ],
+        ask: "Can you go wire the bail money right now? My lawyer is waiting.",
+        choices: [
+          { label: "Wire the money right away", safe: false, tip: "Scammers fake a grandkid in trouble (sometimes with AI voice clones). Always check with the family first." },
+          { label: "Hang up and call my grandkid's own number", safe: true, tip: "Exactly right. Call them, or their parents, on a number you already have." },
+          { label: "Ask a question only my real grandkid would know", safe: true, tip: "Good instinct. A family safe word or private question beats any sad story. Then call them yourself." }
+        ]
+      },
+      {
+        id: "bank",
+        caller: "Your Bank Fraud Dept",
+        number: "(555) 010-0133",
+        voice: { pitch: 1.05, rate: 1.0 },
+        lines: [
+          { t: "Hi, this is Sarah from your bank's fraud department.", flag: false, audio: "" },
+          { t: "We stopped a nine hundred dollar charge at an electronics store. Was that you?", flag: false, audio: "" },
+          { t: "Your account will be locked in ten minutes unless we verify you.", flag: true, why: "Fake urgency", audio: "" },
+          { t: "We just texted you a six-digit code. Read it back to me to confirm.", flag: true, why: "Asks for your code", audio: "" },
+          { t: "Then move your savings to a new safe account we set up for you.", flag: true, why: "'Safe account' trick", audio: "" }
+        ],
+        ask: "Read me the code we just texted you so I can stop the charge.",
+        choices: [
+          { label: "Read them the code", safe: false, tip: "That code is the key to your account. Real banks never ask you to read it back. Anyone asking is the thief." },
+          { label: "Hang up", safe: true, tip: "Good move. Never share a one-time code with anyone who calls you." },
+          { label: "Hang up and call the number on the back of my card", safe: true, tip: "Perfect. If there really is fraud, the bank will tell you when you call them." }
+        ]
+      },
+      {
+        id: "warranty",
+        caller: "Vehicle Services",
+        number: "(555) 010-0156",
+        voice: { pitch: 1.0, rate: 1.08 },
+        lines: [
+          { t: "We've been trying to reach you about your car's extended warranty.", flag: false, audio: "" },
+          { t: "This is your final notice before your coverage is cancelled for good.", flag: true, why: "'Final notice' pressure", audio: "" },
+          { t: "Repairs on newer cars can cost thousands of dollars.", flag: false, audio: "" },
+          { t: "Lock in coverage today with a one-time payment over the phone.", flag: true, why: "Pay on the spot", audio: "" },
+          { t: "Press 1 now to speak to an agent, or press 2 to be removed.", flag: true, why: "'Press 1' robocall", audio: "" }
+        ],
+        ask: "Press 1 now to keep your coverage.",
+        choices: [
+          { label: "Press 1 to talk to an agent", safe: false, tip: "Pressing anything tells robocallers your number works, and the 'agent' wants your card number." },
+          { label: "Hang up without pressing anything", safe: true, tip: "Right. Even pressing 2 to be 'removed' can bring more calls. Just hang up." },
+          { label: "Hang up and check with my real dealer", safe: true, tip: "Smart. Your dealer or the paperwork you already have will tell you what you really have." }
+        ]
+      },
+      {
+        id: "tech",
+        caller: "Computer Support",
+        number: "(555) 010-0191",
+        voice: { pitch: 0.9, rate: 1.05 },
+        lines: [
+          { t: "Hello, I'm calling from computer support about your home computer.", flag: false, audio: "" },
+          { t: "Our system shows your computer is sending out viruses right now.", flag: true, why: "Out-of-the-blue alert", audio: "" },
+          { t: "Don't worry, this happens to a lot of people.", flag: false, audio: "" },
+          { t: "Go to your computer and install the program I tell you so I can log in.", flag: true, why: "Wants remote access", audio: "" },
+          { t: "The repair fee is one ninety-nine, and you can pay with gift cards.", flag: true, why: "Gift card payment", audio: "" }
+        ],
+        ask: "Go to your computer now and let me connect to fix it.",
+        choices: [
+          { label: "Let them connect to my computer", safe: false, tip: "Real tech companies don't call you about viruses. Letting a stranger in gives them your files and bank logins." },
+          { label: "Hang up", safe: true, tip: "Good. No real company watches your computer and calls you about it." },
+          { label: "Hang up and ask a trusted person or local shop to check it", safe: true, tip: "Great choice. If you're worried, get help from someone you picked yourself." }
+        ]
+      },
+      {
+        id: "prize",
+        caller: "Prize Center",
+        number: "(555) 010-0108",
+        voice: { pitch: 1.3, rate: 1.12 },
+        lines: [
+          { t: "Congratulations! You've been selected as our grand prize winner!", flag: false, audio: "" },
+          { t: "You won a brand new car and twenty-five thousand dollars in cash.", flag: true, why: "Prize you never entered", audio: "" },
+          { t: "We just need a small four hundred dollar fee for taxes and delivery.", flag: true, why: "Pay to get a prize", audio: "" },
+          { t: "Our winners are always so excited to hear the news.", flag: false, audio: "" },
+          { t: "The offer expires in thirty minutes, so act now.", flag: true, why: "Fake deadline", audio: "" }
+        ],
+        ask: "Give me a card number for the delivery fee so we can ship your prize.",
+        choices: [
+          { label: "Pay the fee to claim it", safe: false, tip: "Real prizes are free. If you have to pay to win, it's a scam, and the prize never arrives." },
+          { label: "Hang up", safe: true, tip: "Right. You can't win a contest you never entered." },
+          { label: "Hang up and tell a friend about the call", safe: true, tip: "Great. Talking it over with someone you trust takes the pressure off." }
+        ]
+      },
+      {
+        id: "utility",
+        caller: "Power Company",
+        number: "(555) 010-0164",
+        voice: { pitch: 0.85, rate: 1.05 },
+        lines: [
+          { t: "This is your power company calling about your account.", flag: false, audio: "" },
+          { t: "Your last payment did not go through.", flag: false, audio: "" },
+          { t: "A crew is on the way to shut off your power in forty-five minutes.", flag: true, why: "Shutoff threat", audio: "" },
+          { t: "Only payment by prepaid card or a crypto ATM can stop the crew.", flag: true, why: "Prepaid card / crypto", audio: "" },
+          { t: "Stay on the line and don't call the main office. They can't help you.", flag: true, why: "Don't call the real number", audio: "" }
+        ],
+        ask: "Stay on the line and pay with a prepaid card to stop the shutoff.",
+        choices: [
+          { label: "Pay with a prepaid card", safe: false, tip: "Utilities send notices well before any shutoff, and they don't demand prepaid cards or crypto." },
+          { label: "Hang up", safe: true, tip: "Good. A real power company won't threaten a shutoff within the hour." },
+          { label: "Hang up and call the number on my power bill", safe: true, tip: "Perfect. Your bill has the real number, so check your account there." }
+        ]
+      }
+    ];
+
+    // ----- Page elements -----
+    var $ = function (id) { return document.getElementById(id); };
+    var screenStart = $("screen-start"), screenPlay = $("screen-play"), screenEnd = $("screen-end");
+    var hudScore = $("hud-score"), hudProgress = $("hud-progress"), hudLives = $("hud-lives");
+    var callCard = $("call"), callHead = $("call-head"), callerLabel = $("caller-label"), callerName = $("caller-name"), callerNum = $("caller-num");
+    var callClock = $("call-clock"), timerEl = $("timer"), timerFill = $("timer-fill");
+    var transcript = $("transcript"), callHint = $("call-hint");
+    var resultEl = $("result"), resultVerdict = $("result-verdict"), resultTip = $("result-tip"), resultFlags = $("result-flags");
+    var btnFlag = $("btn-flag"), decisionEl = $("decision"), choicesEl = $("choices");
+    var btnPlay = $("btn-play"), btnAgain = $("btn-again"), btnNext = $("btn-next");
+    var btnSoundStart = $("btn-sound-start"), btnSoundPlay = $("btn-sound-play");
+
+    // ----- Game state -----
+    var deck = [], callIndex = 0, script = null;
+    var score = 0, lives = START_LIVES;
+    var caught = 0, missed = 0, totalFlags = 0, safeCalls = 0;
+    var lineIndex = -1, phase = "start";
+    var lineTimer = null, rafId = null;
+    var callStart = 0, callTotalMs = 0, callElapsedBase = 0, clockStart = 0;
+    var bubbles = [];
+    var soundOn = true;
+
+    // ----- Storage (wrapped: sandboxed iframes may block it) -----
+    function readBest() {
+      try { var v = parseInt(window.localStorage.getItem(BEST_KEY), 10); return isNaN(v) ? 0 : v; }
+      catch (err) { return 0; }
+    }
+    function saveBest(v) {
+      try { window.localStorage.setItem(BEST_KEY, String(v)); } catch (err) { /* ok without it */ }
+    }
+
+    // ----- Voice: browser's built-in speech, if there is one -----
+    var synth = null;
+    try {
+      if (window.speechSynthesis && typeof window.speechSynthesis.speak === "function" &&
+          typeof window.SpeechSynthesisUtterance === "function") {
+        synth = window.speechSynthesis;
+      }
+    } catch (err) { synth = null; }
+    var currentClip = null;
+    var speakToken = 0;
+
+    function stopVoice() {
+      speakToken++;
+      try { if (synth) synth.cancel(); } catch (err) { /* ignore */ }
+      try { if (currentClip) { currentClip.pause(); currentClip = null; } } catch (err) { currentClip = null; }
+    }
+
+    // Plays a recorded clip if the line has one, otherwise speaks it.
+    // onDone is optional and only used to move on a little early.
+    function sayLine(text, clip, voice, onDone) {
+      stopVoice();
+      if (!soundOn) return;
+      var token = speakToken;
+      var done = function () { if (token === speakToken && onDone) onDone(); };
+      if (clip) {
+        try {
+          currentClip = new Audio(clip);
+          currentClip.onended = done;
+          var p = currentClip.play();
+          if (p && p.catch) p.catch(function () { /* blocked or missing: captions still work */ });
+          return;
+        } catch (err) { currentClip = null; }
+      }
+      if (!synth) return;
+      try {
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-US";
+        u.rate = (voice && voice.rate) || 1;
+        u.pitch = (voice && voice.pitch) || 1;
+        u.volume = 1;
+        u.onend = done;
+        u.onerror = function () { /* captions still work */ };
+        synth.speak(u);
+      } catch (err) { /* captions still work */ }
+    }
+
+    // ----- Little sounds made with oscillators (original, no files) -----
+    var audioCtx = null;
+    function ensureAudio() {
+      if (audioCtx) { try { if (audioCtx.state === "suspended") audioCtx.resume(); } catch (e) {} return; }
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      } catch (err) { audioCtx = null; }
+    }
+    function tone(freq, seconds, wave, volume, delay) {
+      if (!soundOn || !audioCtx) return;
+      try {
+        var t0 = audioCtx.currentTime + (delay || 0);
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.linearRampToValueAtTime(volume || 0.06, t0 + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + seconds);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(t0); osc.stop(t0 + seconds + 0.05);
+      } catch (err) { /* sound is optional */ }
+    }
+    function soundRing() {
+      // Two short "brrring" bursts (two tones together, like a phone).
+      for (var r = 0; r < 2; r++) {
+        for (var k = 0; k < 6; k++) {
+          tone(440, 0.07, "sine", 0.045, r * 0.55 + k * 0.075);
+          tone(480, 0.07, "sine", 0.045, r * 0.55 + k * 0.075);
+        }
+      }
+    }
+    function soundFlag() { tone(660, 0.1, "square", 0.04); tone(880, 0.14, "square", 0.04, 0.08); }
+    function soundHarmless() { tone(220, 0.22, "triangle", 0.06); }
+    function soundSafe() { tone(523, 0.12, "sine", 0.07); tone(659, 0.12, "sine", 0.07, 0.09); tone(784, 0.2, "sine", 0.07, 0.18); }
+    function soundFell() { tone(300, 0.2, "sawtooth", 0.05); tone(180, 0.35, "sawtooth", 0.05, 0.18); }
+    function soundHangup() { tone(620, 0.08, "sine", 0.05); tone(480, 0.12, "sine", 0.05, 0.1); }
+
+    function setSound(on) {
+      soundOn = on;
+      [btnSoundStart, btnSoundPlay].forEach(function (b) {
+        b.textContent = on ? (synth ? "Sound: On" : "Sound: On (no voice, read captions)") : "Sound: Off (captions only)";
+        b.classList.toggle("off", !on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      if (!on) stopVoice();
+      else ensureAudio();
+    }
+
+    // ----- Helpers -----
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
+    }
+    function escapeHtml(text) {
+      return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+    function setPhase(p) { phase = p; document.body.setAttribute("data-phase", p); }
+    function drawLives() {
+      var html = "";
+      for (var i = 0; i < START_LIVES; i++) html += '<span class="life' + (i < lives ? "" : " gone") + '"></span>';
+      hudLives.innerHTML = html;
+    }
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = Math.min(callIndex + 1, deck.length) + " / " + deck.length;
+      drawLives();
+    }
+    function addPoints(n) { score = Math.max(0, score + n); updateHud(); }
+    function fmtClock(ms) {
+      var s = Math.floor(ms / 1000);
+      return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
+    }
+    // How long a line stays "live": about as long as it takes to say it.
+    function lineMs(text) { return Math.round(Math.min(7000, Math.max(3000, 1100 + text.length * 52)) * SPEED); }
+
+    // ----- Game flow -----
+    function startGame() {
+      ensureAudio();
+      deck = shuffle(SCRIPTS).slice(0, CALLS_PER_GAME);
+      callIndex = 0; score = 0; lives = START_LIVES;
+      caught = 0; missed = 0; totalFlags = 0; safeCalls = 0;
+      showScreen("play");
+      startCall();
+    }
+
+    function clearTimers() {
+      if (lineTimer) { clearTimeout(lineTimer); lineTimer = null; }
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    }
+
+    function startCall() {
+      clearTimers();
+      stopVoice();
+      script = deck[callIndex];
+      updateHud();
+      bubbles = [];
+      lineIndex = -1;
+      transcript.innerHTML = "";
+      resultEl.classList.remove("show", "ok", "bad");
+      decisionEl.classList.add("hidden");
+      btnFlag.classList.remove("hidden");
+      btnFlag.disabled = true;
+      callerLabel.textContent = "Incoming call";
+      callerName.textContent = script.caller;
+      callerNum.textContent = script.number;
+      callClock.textContent = "0:00";
+      callHint.textContent = "Ringing...";
+      timerFill.style.transform = "scaleX(1)";
+      timerEl.classList.remove("warn", "danger");
+      callHead.classList.add("ringing");
+      document.body.setAttribute("data-call", script.id);
+      setPhase("ringing");
+      totalFlags += script.lines.filter(function (l) { return l.flag; }).length;
+
+      callTotalMs = 0;
+      script.lines.forEach(function (l) { callTotalMs += lineMs(l.t); });
+      callTotalMs += lineMs(script.ask);
+
+      soundRing();
+      lineTimer = setTimeout(function () {
+        callHead.classList.remove("ringing");
+        callerLabel.textContent = "Connected";
+        callHint.textContent = "Tap any line that sounds like a scam.";
+        btnFlag.disabled = false;
+        setPhase("call");
+        callStart = performance.now();
+        tick();
+        nextLine();
+      }, Math.round(1300 * SPEED) + 200);
+    }
+
+    function tick() {
+      var elapsed = performance.now() - callStart;
+      if (callCard.scrollTop) callCard.scrollTop = 0;
+      var left = Math.max(0, 1 - elapsed / callTotalMs);
+      timerFill.style.transform = "scaleX(" + left.toFixed(3) + ")";
+      timerEl.classList.toggle("warn", left < 0.4 && left >= 0.18);
+      timerEl.classList.toggle("danger", left < 0.18);
+      callClock.textContent = fmtClock(elapsed / SPEED);
+      if (phase === "call" || phase === "decision") rafId = requestAnimationFrame(tick);
+    }
+
+    function makeBubble(text, isAsk, lineObj) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "bubble" + (isAsk ? " ask" : "");
+      b.innerHTML = escapeHtml(text);
+      if (!isAsk) {
+        var i = bubbles.length;
+        b.setAttribute("data-line", String(i));
+        b.setAttribute("data-flag", lineObj.flag ? "1" : "0");
+        b.addEventListener("click", function () { flagLine(i); });
+        bubbles.push({ el: b, line: lineObj, marked: false });
+      } else {
+        b.setAttribute("data-ask", "1");
+        b.tabIndex = -1;
+      }
+      transcript.appendChild(b);
+      transcript.scrollTop = transcript.scrollHeight;
+      return b;
+    }
+
+    function nextLine() {
+      if (lineTimer) { clearTimeout(lineTimer); lineTimer = null; }
+      if (lineIndex >= 0 && bubbles[lineIndex]) bubbles[lineIndex].el.classList.remove("active");
+      lineIndex++;
+      if (lineIndex >= script.lines.length) { askDecision(); return; }
+
+      var line = script.lines[lineIndex];
+      var b = makeBubble(line.t, false, line);
+      b.classList.add("active");
+      var ms = lineMs(line.t);
+      var shownAt = performance.now();
+      var myIndex = lineIndex;
+      lineTimer = setTimeout(nextLine, ms);
+      // If the voice finishes early, move on a bit sooner (never before 2.4 s).
+      sayLine(line.t, line.audio, script.voice, function () {
+        if (lineIndex !== myIndex || phase !== "call") return;
+        var wait = Math.max(450, 2400 * SPEED - (performance.now() - shownAt));
+        if (lineTimer) clearTimeout(lineTimer);
+        lineTimer = setTimeout(nextLine, wait);
+      });
+    }
+
+    function floatPoints(el, n) {
+      var s = document.createElement("span");
+      s.className = "float-pts " + (n >= 0 ? "plus" : "minus");
+      s.textContent = (n >= 0 ? "+" : "") + n;
+      el.appendChild(s);
+      setTimeout(function () { if (s.parentNode) s.parentNode.removeChild(s); }, 950);
+    }
+
+    // Player flags a line (by tapping it, or with the Red Flag button for the live line).
+    function flagLine(i) {
+      if (phase !== "call" && phase !== "decision") return;
+      var item = bubbles[i];
+      if (!item || item.marked) return;
+      item.marked = true;
+      item.el.classList.remove("active");
+      if (item.line.flag) {
+        var pts = (i === lineIndex && phase === "call") ? PTS_FLAG_LIVE : PTS_FLAG_LATE;
+        caught++;
+        item.el.classList.add("flagged");
+        item.el.insertAdjacentHTML("beforeend", '<br><span class="tag red">Red flag: ' + escapeHtml(item.line.why) + "</span>");
+        addPoints(pts);
+        floatPoints(item.el, pts);
+        soundFlag();
+        document.body.setAttribute("data-last-flag", "hit");
+      } else {
+        item.el.classList.add("harmless");
+        item.el.insertAdjacentHTML("beforeend", '<br><span class="tag green">Harmless line</span>');
+        addPoints(PTS_WRONG_FLAG);
+        floatPoints(item.el, PTS_WRONG_FLAG);
+        soundHarmless();
+        document.body.setAttribute("data-last-flag", "miss");
+      }
+      if (i === bubbles.length - 1) transcript.scrollTop = transcript.scrollHeight;
+    }
+
+    function askDecision() {
+      setPhase("decision");
+      lineIndex = script.lines.length; // nothing is "live" now
+      makeBubble(script.ask, true, null);
+      sayLine(script.ask, script.askAudio || "", script.voice);
+      callHint.textContent = "You can still tap lines you missed (half points).";
+      btnFlag.classList.add("hidden");
+      var opts = shuffle(script.choices);
+      var html = "";
+      opts.forEach(function (c, k) {
+        html += '<button type="button" class="choice" data-safe="' + (c.safe ? "1" : "0") + '" data-k="' + k + '"><span class="key">' + (k + 1) + "</span>" + escapeHtml(c.label) + "</button>";
+      });
+      choicesEl.innerHTML = html;
+      Array.prototype.forEach.call(choicesEl.querySelectorAll(".choice"), function (btn, k) {
+        btn.addEventListener("click", function () { choose(opts[k]); });
+      });
+      decisionEl.classList.remove("hidden");
+      transcript.scrollTop = transcript.scrollHeight;
+      // Keep the choice buttons in view inside short embeds.
+      try { decisionEl.scrollIntoView({ block: "nearest" }); } catch (err) {}
+    }
+
+    function choose(choice) {
+      if (phase !== "decision") return;
+      setPhase("result");
+      clearTimers();
+      stopVoice();
+      decisionEl.classList.add("hidden");
+      callHead.classList.remove("ringing");
+      callerLabel.textContent = "Call ended";
+
+      // Count and show any red flags that slipped by.
+      var missedWhy = [];
+      var callCaught = 0, callFlags = 0;
+      bubbles.forEach(function (b) {
+        if (!b.line.flag) return;
+        callFlags++;
+        if (b.marked) { callCaught++; return; }
+        missedWhy.push(b.line.why);
+        b.el.classList.add("missed");
+        b.el.insertAdjacentHTML("beforeend", '<br><span class="tag miss">Missed: ' + escapeHtml(b.line.why) + "</span>");
+      });
+      missed += missedWhy.length;
+
+      resultEl.classList.remove("ok", "bad");
+      if (choice.safe) {
+        safeCalls++;
+        var bonus = PTS_SAFE_CHOICE + (missedWhy.length === 0 ? PTS_PERFECT : 0);
+        addPoints(bonus);
+        soundHangup(); setTimeout(soundSafe, 250);
+        resultEl.classList.add("ok");
+        resultVerdict.textContent = missedWhy.length === 0 ? "Perfect call! +" + bonus : "Safe! +" + bonus;
+        document.body.setAttribute("data-last-result", "safe");
+      } else {
+        lives--;
+        updateHud();
+        soundFell();
+        resultEl.classList.add("bad");
+        resultVerdict.textContent = "You fell for it!";
+        document.body.setAttribute("data-last-result", "fell");
+      }
+      resultTip.textContent = choice.tip;
+      var sum = "Red flags caught: <strong" + (callCaught === callFlags ? ' class="all"' : "") + ">" + callCaught + " of " + callFlags + "</strong>";
+      if (missedWhy.length) sum += "<br>Missed: " + missedWhy.map(escapeHtml).join(", ");
+      resultFlags.innerHTML = sum;
+
+      var last = lives <= 0 || callIndex >= deck.length - 1;
+      btnNext.textContent = last ? "See results" : "Next call";
+      resultEl.classList.add("show");
+    }
+
+    function afterResult() {
+      if (phase !== "result") return;
+      if (lives <= 0 || callIndex >= deck.length - 1) { endGame(); return; }
+      callIndex++;
+      startCall();
+    }
+
+    function endGame() {
+      clearTimers();
+      stopVoice();
+      setPhase("end");
+      var best = readBest();
+      var isNewBest = score > best;
+      if (isNewBest) { best = score; saveBest(best); }
+      $("end-title").textContent = lives <= 0 ? "Out of lives. The scammers got you this time." : "Shift complete. Nice work!";
+      $("end-score").textContent = score;
+      $("end-caught").textContent = caught + " / " + totalFlags;
+      $("end-missed").textContent = missed;
+      $("end-safe").textContent = safeCalls + " / " + (callIndex + 1);
+      $("end-best").textContent = best;
+      $("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      $("start-best").textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    // ----- Clicks and keyboard -----
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnNext.addEventListener("click", afterResult);
+    btnFlag.addEventListener("click", function () {
+      if (phase === "call" && lineIndex >= 0 && lineIndex < bubbles.length) flagLine(lineIndex);
+    });
+    [btnSoundStart, btnSoundPlay].forEach(function (b) {
+      b.addEventListener("click", function () { setSound(!soundOn); });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      var k = e.key;
+      if (k === "Enter") {
+        if (phase === "start" || phase === "end") { e.preventDefault(); startGame(); }
+        else if (phase === "result") { e.preventDefault(); afterResult(); }
+        return;
+      }
+      if ((k === " " || k === "f" || k === "F") && phase === "call") {
+        e.preventDefault();
+        btnFlag.click();
+        return;
+      }
+      if (phase === "decision" && /^[1-3]$/.test(k)) {
+        var btn = choicesEl.querySelectorAll(".choice")[parseInt(k, 10) - 1];
+        if (btn) { e.preventDefault(); btn.click(); }
+      }
+    });
+
+    setSound(true);
+    refreshStartBest();
+    setPhase("start");
+  </script>
+</body>
+</html>
