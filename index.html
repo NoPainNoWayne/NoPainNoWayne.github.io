@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0A1B33">
+  <meta name="description" content="Free, fun games that help you spot scams and stay safe online. Play Scam Spotter, Password Builder, and Scam Call Scramble.">
+  <title>NoPainNoWayne — Free Games to Spot Scams and Stay Safe Online</title>
+  <style>
+    /* Brand colors: navy + gold, matched to the existing games */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    #app {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 18px 32px;
+      padding-top: max(28px, env(safe-area-inset-top));
+      padding-bottom: max(32px, env(safe-area-inset-bottom));
+      padding-left: max(18px, env(safe-area-inset-left));
+      padding-right: max(18px, env(safe-area-inset-right));
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    /* ===== Welcome banner ===== */
+    .hero {
+      text-align: center;
+      margin: 8px auto 28px;
+      max-width: 720px;
+    }
+
+    .logo {
+      display: block;
+      width: 72px;
+      height: 80px;
+      margin: 0 auto 8px;
+    }
+
+    h1 {
+      font-size: clamp(32px, 8vw, 52px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      text-align: center;
+      margin: 6px 0 12px;
+      font-weight: 700;
+    }
+
+    .tagline {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(16px, 3.6vw, 20px);
+      line-height: 1.4;
+      max-width: 28em;
+      margin: 0 auto;
+    }
+
+    /* ===== Game grid ===== */
+    .games {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 22px 20px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      min-width: 0;
+    }
+
+    .card .icon {
+      display: block;
+      width: 64px;
+      height: 72px;
+      margin: 0 auto 2px;
+    }
+
+    .card h2 {
+      font-size: clamp(20px, 4.5vw, 24px);
+      line-height: 1.2;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      margin: 8px 0 10px;
+      font-weight: 700;
+    }
+
+    .card p {
+      color: var(--cream);
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0 0 18px;
+      flex: 1;
+    }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 20px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+      text-decoration: none;
+      text-align: center;
+      font-family: inherit;
+    }
+
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--gold-deep);
+    }
+    .btn-play:focus-visible,
+    .site-link:focus-visible {
+      outline: 3px solid var(--gold-soft);
+      outline-offset: 3px;
+    }
+
+    /* Coming soon: same family, quieter so it is clearly not a playable game */
+    .card.soon {
+      border-style: dashed;
+      border-color: rgba(212, 175, 55, 0.55);
+      box-shadow: none;
+      background: rgba(19, 41, 70, 0.7);
+    }
+
+    .soon-badge {
+      display: inline-block;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(212, 175, 55, 0.55);
+      color: var(--gold-soft);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .card.soon h2 {
+      color: var(--gold-soft);
+      margin-top: 0;
+    }
+
+    .card.soon p {
+      color: var(--gold-soft);
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      padding-top: 8px;
+    }
+
+    .site-link {
+      color: var(--gold);
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .site-link:hover { color: var(--gold-soft); }
+
+    @media (min-width: 720px) {
+      #app { padding: 40px 28px 40px; }
+      .tagline { max-width: none; }
+      .games {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        align-items: stretch;
+      }
+      .card.soon {
+        grid-column: 1 / -1;
+        max-width: 520px;
+        margin: 4px auto 0;
+        padding: 18px 22px;
+      }
+      .btn-play { font-size: 22px; }
+    }
+
+    @media (max-width: 419px) {
+      #app { padding: 20px 14px 24px; }
+      .hero { margin-bottom: 20px; }
+      .logo { width: 56px; height: 62px; }
+      .card { padding: 18px 16px 16px; }
+      .card .icon { width: 56px; height: 62px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+      <header class="hero">
+        <!-- Shield mark, drawn as inline SVG so we need no image files. -->
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <path d="M36 22 L40.5 31.5 L51 32.8 L43.3 40 L45.3 50.4 L36 45.4 L26.7 50.4 L28.7 40 L21 32.8 L31.5 31.5 Z" fill="#D4AF37"/>
+        </svg>
+        <h1>NoPainNoWayne</h1>
+        <p class="tagline">Free, fun games that help you spot scams and stay safe online.</p>
+      </header>
+
+      <main class="games">
+        <article class="card">
+          <svg class="icon" viewBox="0 0 72 80" aria-hidden="true">
+            <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+            <path d="M22 40 L32 50 L52 28" fill="none" stroke="#D4AF37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <h2>Scam Spotter</h2>
+          <p>Messages appear one at a time. Decide if each one is Real or a Scam.</p>
+          <a class="btn-play" href="/scam-spotter/">Play</a>
+        </article>
+
+        <article class="card">
+          <svg class="icon" viewBox="0 0 72 80" aria-hidden="true">
+            <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+            <path d="M26 36 V28 C26 21 46 21 46 28 V36" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linecap="round"/>
+            <rect x="22" y="36" width="28" height="22" rx="4" fill="#0A1B33" stroke="#D4AF37" stroke-width="3"/>
+            <circle cx="36" cy="45" r="3.2" fill="#D4AF37"/>
+            <rect x="34.4" y="47" width="3.2" height="6" rx="1" fill="#D4AF37"/>
+          </svg>
+          <h2>Password Builder</h2>
+          <p>Tap tiles to build a password the hackers can't crack — you never type one.</p>
+          <a class="btn-play" href="/password-builder/">Play</a>
+        </article>
+
+        <article class="card">
+          <svg class="icon" viewBox="0 0 72 80" aria-hidden="true">
+            <path d="M36 4 L68 16 V38 C68 58 54 72 36 78 C18 72 4 58 4 38 V16 Z" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+            <path d="M24 26 c3-3 6-2 7 1 l2 5 c1 2 0 4-2 5 l-2 1 c2 5 5 8 10 10 l1-2 c1-2 3-3 5-2 l5 2 c3 1 4 4 1 7 c-3 3-8 4-13 1 c-6-3-11-8-14-14 c-3-5-3-11 0-14 z" fill="#D4AF37"/>
+          </svg>
+          <h2>Scam Call Scramble</h2>
+          <p>Your phone is ringing. Can you catch the scam before it catches you?</p>
+          <a class="btn-play" href="/scam-call-scramble/">Play</a>
+        </article>
+
+        <article class="card soon">
+          <p class="soon-badge">Coming soon</p>
+          <h2>More games and tools</h2>
+          <p>New ways to practice spotting scams and staying safe online are on the way.</p>
+        </article>
+      </main>
+
+      <footer>
+        <a class="site-link" href="https://www.nopainnowayne.com">nopainnowayne.com</a>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
