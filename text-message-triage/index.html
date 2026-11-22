@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Text Message Triage</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as Scam Spotter and Scam Call Scramble) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+      --check: #C4891A;
+      --check-deep: #8E6410;
+      --bubble: #EFE8D6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(26px, 7.4vw, 38px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    /* ===== Play HUD ===== */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud strong { color: var(--gold); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    .streak {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-height: 1.2em;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      border-radius: 999px;
+      transform-origin: left center;
+    }
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    /* ===== Phone-style message card ===== */
+    .phone {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 22px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #1a2a40;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 14px 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cream);
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      letter-spacing: 0.02em;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+    .status-icons svg { display: block; }
+
+    .thread-head {
+      background: linear-gradient(180deg, var(--navy-mid), #10233c);
+      color: var(--cream);
+      padding: 8px 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto;
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    .who { flex: 1 1 auto; min-width: 0; }
+    .who-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .who-num {
+      font-size: 12px;
+      color: var(--cream);
+      opacity: 0.8;
+      overflow-wrap: anywhere;
+    }
+
+    .context {
+      background: #F3EBDA;
+      color: #3A4A5A;
+      font-size: 12.5px;
+      line-height: 1.35;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .context strong { color: var(--ink); }
+
+    .thread {
+      padding: 12px 12px 16px;
+      min-height: 168px;
+      background:
+        linear-gradient(180deg, #FFFBF3, #F7F0E0);
+    }
+
+    .stamp {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .bubble {
+      text-align: left;
+      background: var(--bubble);
+      color: var(--ink);
+      border-radius: 4px 16px 16px 16px;
+      padding: 10px 12px 11px;
+      font-size: 15px;
+      line-height: 1.45;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      animation: pop 0.22s ease-out;
+      box-shadow: 0 2px 0 rgba(16, 32, 51, 0.06);
+    }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    .fake-link {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 10px;
+      background: #EAF2FB;
+      color: #1C4E8A;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      cursor: default;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .pane { position: relative; overflow: hidden; isolation: isolate; }
+    .pane.is-feedback { background: #F6F1E3; }
+    .pane.is-feedback .context,
+    .pane.is-feedback .thread { visibility: hidden; }
+
+    .feedback {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 14px 16px 22px;
+      overflow-y: auto;
+      background: #F6F1E3;
+      transform: translateY(100%);
+      transition: transform 0.22s ease;
+    }
+    .feedback.show { transform: translateY(0); }
+    body.fast .feedback { transition: none; }
+    .feedback .verdict {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .feedback.ok .verdict { color: var(--real); }
+    .feedback.bad .verdict { color: var(--scam); }
+    .feedback .tip {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+    .feedback .answer-line {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .swipe-hint {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--gold-soft);
+      opacity: 0.8;
+      margin: 8px 0 2px;
+      line-height: 1.35;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-choice {
+      font-size: clamp(14px, 3.6vw, 17px);
+      font-weight: 800;
+      padding: 12px 6px 10px;
+      border-radius: 14px;
+      color: #fff;
+      letter-spacing: 0.01em;
+      min-height: 58px;
+      line-height: 1.15;
+    }
+    .btn-choice small {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+      margin-top: 3px;
+    }
+    .btn-safe { background: var(--real); box-shadow: 0 4px 0 var(--real-deep); }
+    .btn-check { background: var(--check); box-shadow: 0 4px 0 var(--check-deep); }
+    .btn-scam { background: var(--scam); box-shadow: 0 4px 0 var(--scam-deep); }
+    .btn-choice:hover { filter: brightness(1.06); }
+    .btn-choice:active { transform: translateY(2px); box-shadow: 0 2px 0 currentColor; }
+    .btn-choice:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ===== End screen ===== */
+    .score-block { text-align: center; margin: 6px 0 14px; }
+    .end-rank {
+      text-align: center;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .end-title {
+      text-align: center;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+    }
+    .stats strong { color: var(--gold); }
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .miss {
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .miss:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .miss-head { font-weight: 700; color: var(--gold-soft); margin-bottom: 2px; overflow-wrap: anywhere; }
+    .miss-tip { color: var(--cream); overflow-wrap: anywhere; }
+    .all-clear { font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .thread { min-height: 150px; padding: 10px 10px 14px; }
+      .btn-choice { padding: 10px 4px 8px; min-height: 54px; }
+      .choices { gap: 6px; }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .thread { min-height: 132px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <!-- ===== START SCREEN ===== -->
+      <section id="screen-start" class="panel">
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <rect x="16" y="4" width="40" height="72" rx="8" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <rect x="20" y="12" width="32" height="46" rx="3" fill="#0A1B33"/>
+          <rect x="24" y="18" width="20" height="14" rx="4" fill="#D4AF37"/>
+          <path d="M28 32 L32 38 L36 32" fill="#D4AF37"/>
+          <path d="M26 50 L32 56 L48 36" fill="none" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1>Text Message Triage</h1>
+        <p class="pitch">Can you sort a risky text before it tricks you?</p>
+        <ul class="howto">
+          <li>12 messages land in your inbox, one at a time. A short timer is running.</li>
+          <li>Tap <strong>Safe</strong> if you can trust it, <strong>Scam</strong> if it is a trick, or <strong>Check First</strong> if you should verify another way before you act.</li>
+          <li>Faster answers and streaks score more. After each choice, a tip explains the tell.</li>
+          <li>On a keyboard: <strong>A</strong> or ← Safe, <strong>C</strong> or ↑ Check First, <strong>D</strong> or → Scam. You can also swipe the message: right Safe, up Check First, left Scam.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="fake-note">Every message, link, and phone number in this game is made up. Use 555 numbers and example-style links only as practice.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== PLAY SCREEN ===== -->
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Message<br><strong id="hud-progress">1 / 12</strong></div>
+          <div style="text-align:right">Time<br><strong id="hud-time">12</strong></div>
+        </div>
+        <div class="streak" id="hud-streak"></div>
+        <div class="timer" id="timer"><div class="timer-fill" id="timer-fill"></div></div>
+
+        <article class="phone" id="phone-card">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>Messages</span>
+            <span class="status-icons" aria-hidden="true">
+              <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2" height="4" fill="#F3E2A0"/><rect x="4" y="4" width="2" height="6" fill="#F3E2A0"/><rect x="8" y="2" width="2" height="8" fill="#F3E2A0"/><rect x="12" y="0" width="2" height="10" fill="#F3E2A0" opacity="0.45"/></svg>
+              <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0" y="1" width="18" height="8" rx="2" fill="none" stroke="#F3E2A0" stroke-width="1"/><rect x="2" y="3" width="12" height="4" fill="#D4AF37"/><rect x="19" y="3" width="2" height="4" fill="#F3E2A0"/></svg>
+            </span>
+          </div>
+          <div class="thread-head">
+            <div class="avatar" id="msg-avatar">?</div>
+            <div class="who">
+              <div class="who-name" id="msg-from"></div>
+              <div class="who-num" id="msg-number"></div>
+            </div>
+          </div>
+          <div class="pane">
+            <div class="context" id="msg-context"></div>
+            <div class="thread" id="msg-thread"></div>
+            <div class="feedback" id="feedback">
+              <div class="answer-line" id="feedback-answer"></div>
+              <div class="verdict" id="feedback-verdict"></div>
+              <p class="tip" id="feedback-tip"></p>
+            </div>
+          </div>
+        </article>
+
+        <p class="swipe-hint">Or swipe the message: right Safe, up Check First, left Scam</p>
+        <div class="choices">
+          <button type="button" class="btn-choice btn-safe" id="btn-safe">
+            Safe
+            <small>A or Left</small>
+          </button>
+          <button type="button" class="btn-choice btn-check" id="btn-check">
+            Check First
+            <small>C or Up</small>
+          </button>
+          <button type="button" class="btn-choice btn-scam" id="btn-scam">
+            Scam
+            <small>D or Right</small>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== END SCREEN ===== -->
+      <section id="screen-end" class="panel hidden">
+        <p class="end-rank" id="end-rank">Inbox Ace</p>
+        <p class="end-title" id="end-title">Round complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Correct<br><strong id="end-accuracy">0/12</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap" id="end-recap">
+          <h2 id="end-recap-title">Messages you missed</h2>
+          <div id="end-misses"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Text Message Triage — a small teaching game about sorting
+       everyday texts. Everything lives in this one file so it can
+       be pasted into a Google Sites embed (a sandboxed iframe).
+       Messages, links, and phone numbers are fictional.
+       ============================================================ */
+
+    var ROUND_SIZE = 12;
+    var START_SECONDS = 14;
+    var MIN_SECONDS = 10;
+    var TIME_STEP = 0.25;
+    var FAST = location.hash === "#fast";
+    var FEEDBACK_MS = FAST ? 800 : 2400;
+    if (FAST) document.body.classList.add("fast");
+    var BASE_POINTS = 100;
+    var SPEED_MAX = 50;
+    var STREAK_BONUS = 25;
+    var BEST_KEY = "npnw-text-message-triage-best";
+
+    var MESSAGES = [
+      {
+        id: "dinner",
+        answer: "safe",
+        from: "Maya",
+        number: "(555) 010-2144",
+        context: "Saved in your contacts as Maya",
+        body: "Still on for dinner at 6? I can pick up tacos if you want.",
+        link: "",
+        tip: "Safe: a saved contact confirming plans, with no link, codes, or request for money."
+      },
+      {
+        id: "clinic",
+        answer: "safe",
+        from: "Riverside Clinic",
+        number: "(555) 010-1180",
+        context: "This is the clinic number already on your appointment card",
+        body: "Reminder: you have an appointment tomorrow at 10:30 a.m. Reply C to confirm, or call our office if you need to change it.",
+        link: "",
+        tip: "Safe: a reminder from the number already on your appointment card, with no payment link."
+      },
+      {
+        id: "pharmacy",
+        answer: "safe",
+        from: "Neighborhood Pharmacy",
+        number: "(555) 010-3341",
+        context: "This is the pharmacy you already use",
+        body: "Your prescription is ready for pickup at the front counter until 7 p.m. Bring your ID to the window.",
+        link: "",
+        tip: "Safe: a pickup notice from your usual pharmacy, asking you to come in — not to tap a link or pay by text."
+      },
+      {
+        id: "requested-code",
+        answer: "safe",
+        from: "Bank Codes",
+        number: "(555) 010-7002",
+        context: "You just tapped “Send code” in your bank’s official app",
+        body: "Your one-time code is 482915. Don’t share it with anyone. We will never ask you to read it back.",
+        link: "",
+        tip: "Safe: you just asked for this code, and the text is not asking you to send it back or tap a link."
+      },
+      {
+        id: "library",
+        answer: "safe",
+        from: "Oak Street Library",
+        number: "(555) 010-5520",
+        context: "You have a library card at this branch",
+        body: "Your book is due Thursday. Renew it at the desk or in the library app you already use. No late fees this week.",
+        link: "",
+        tip: "Safe: a due-date reminder that sends you back to a desk or an app you already use, with no surprise link."
+      },
+      {
+        id: "dad-soup",
+        answer: "safe",
+        from: "Dad",
+        number: "(555) 010-0912",
+        context: "Saved in your contacts as Dad",
+        body: "Made a pot of soup. Come by after work if you want a container. No rush.",
+        link: "",
+        tip: "Safe: a saved family contact making a casual plan, with no urgency, codes, or money request."
+      },
+      {
+        id: "school-delay",
+        answer: "safe",
+        from: "Lincoln Elementary",
+        number: "(555) 010-4415",
+        context: "This is the school number from the handbook you already have",
+        body: "School will start two hours late tomorrow because of ice. Buses will run on the late schedule.",
+        link: "",
+        tip: "Safe: a delay notice from the school’s usual number, with no link and nothing to pay."
+      },
+      {
+        id: "hydrants",
+        answer: "safe",
+        from: "City Water",
+        number: "(555) 010-2600",
+        context: "A service notice, not a bill",
+        body: "We will flush hydrants on Maple Ave Wednesday 9 a.m. to noon. You may see brief cloudy water. No action is needed.",
+        link: "",
+        tip: "Safe: a public-works notice that asks for no payment, no login, and no reply."
+      },
+      {
+        id: "checkup",
+        answer: "safe",
+        from: "Dr. Patel’s Office",
+        number: "(555) 010-8088",
+        context: "This is the number printed on your visit summary",
+        body: "Reminder: your annual checkup is Friday at 2:00. Please bring your insurance card. To reschedule, call the number on your appointment card.",
+        link: "",
+        tip: "Safe: a checkup reminder from the office’s usual number, pointing you back to info you already have."
+      },
+      {
+        id: "priya-thanks",
+        answer: "safe",
+        from: "Priya",
+        number: "(555) 010-6733",
+        context: "Saved in your contacts as Priya",
+        body: "Thanks again for the ride yesterday. Coffee is on me next week — you pick the place.",
+        link: "",
+        tip: "Safe: a thank-you from a saved contact, with no link and no request for money or codes."
+      },
+      {
+        id: "pottery",
+        answer: "safe",
+        from: "Harbor Community Center",
+        number: "(555) 010-2294",
+        context: "You already signed up for this class",
+        body: "Friendly reminder: pottery is in Room B tonight at 6:30. Bring an old shirt. See you there.",
+        link: "",
+        tip: "Safe: a class reminder for something you already signed up for, with no payment link."
+      },
+      {
+        id: "dentist",
+        answer: "safe",
+        from: "Bright Side Dental",
+        number: "(555) 010-3177",
+        context: "This is the office that already has you on the schedule",
+        body: "Your cleaning is all set for Monday at 9:00. We have your usual chair. See you then.",
+        link: "",
+        tip: "Safe: a routine cleaning reminder, with no new form to fill out and no surprise fee."
+      },
+      {
+        id: "hi-mom",
+        answer: "scam",
+        from: "Unknown",
+        number: "(555) 014-2291",
+        context: "This number is not in your contacts",
+        body: "Hi Mom, I got a new number. I’m in a bind and need $400 in gift cards. Please don’t call anyone. Just text me the codes.",
+        link: "",
+        tip: "Scam: an unknown number claiming to be family, asking for gift cards and secrecy, is a classic trick."
+      },
+      {
+        id: "fake-boss",
+        answer: "scam",
+        from: "Unknown",
+        number: "(555) 014-8802",
+        context: "This number is not in your contacts, and it is not your boss’s usual phone",
+        body: "This is your boss. I’m stuck in a meeting and need you to buy $250 in gift cards for a client gift. Send the codes to this number right now.",
+        link: "",
+        tip: "Scam: a real boss will not text from a new number asking you to buy gift cards. Confirm in person or on a number you already have."
+      },
+      {
+        id: "fake-prize",
+        answer: "scam",
+        from: "Prize Desk",
+        number: "(555) 014-1109",
+        context: "You did not enter a contest",
+        body: "CONGRATS! You won a $2,000 prize. Pay a $39 shipping fee to receive it today.",
+        link: "claim-prize.example.com/win",
+        tip: "Scam: real prizes don’t ask you to pay a fee first, especially for a contest you never entered."
+      },
+      {
+        id: "fake-job",
+        answer: "scam",
+        from: "Hiring Team",
+        number: "(555) 014-6630",
+        context: "You did not apply for this job",
+        body: "You’re hired! Pay a $79 equipment deposit so we can ship your laptop this week.",
+        link: "job-onboard.example.com/deposit",
+        tip: "Scam: a real job will not ask you to pay a deposit or fee to get started."
+      },
+      {
+        id: "share-code",
+        answer: "scam",
+        from: "Transfer Desk",
+        number: "(555) 014-5501",
+        context: "You did not request a code",
+        body: "Your code is 119334. Reply with that code right now to stop a $2,400 wire transfer from your account.",
+        link: "",
+        tip: "Scam: nobody legitimate will ask you to send back a code. That hands them access to your account."
+      },
+      {
+        id: "grandkid-bail",
+        answer: "scam",
+        from: "Unknown",
+        number: "(555) 014-3077",
+        context: "This number is not in your contacts",
+        body: "This is about your grandson. He was in a car accident and needs bail money. Wire $2,000 to this account and don’t tell the rest of the family yet.",
+        link: "",
+        tip: "Scam: a sudden accident story plus a wire and a plea for secrecy is a family-emergency trick. Call your family on a number you already have."
+      },
+      {
+        id: "customs-bitcoin",
+        answer: "scam",
+        from: "Customs Hold",
+        number: "(555) 014-9024",
+        context: "You are not expecting an international package",
+        body: "Your package is held at customs. Pay $18.50 in bitcoin or it will be returned tomorrow.",
+        link: "pack-customs.example.com/pay",
+        tip: "Scam: shippers and customs do not collect surprise fees in bitcoin from a text link."
+      },
+      {
+        id: "car-warranty",
+        answer: "scam",
+        from: "Warranty Center",
+        number: "(555) 014-7721",
+        context: "You did not sign up for a warranty call",
+        body: "Your car warranty expires tonight. Call (555) 014-7721 in the next hour or your coverage ends.",
+        link: "",
+        tip: "Scam: an urgent “your warranty expires tonight” text is a sales pitch, not a real coverage notice."
+      },
+      {
+        id: "typo-bank",
+        answer: "scam",
+        from: "Account Security",
+        number: "(555) 014-4188",
+        context: "You were not in the middle of a bank login",
+        body: "Unusual login. Confirm your password and card number now or your account will be closed.",
+        link: "mybank-securee.example.com/login",
+        tip: "Scam: the address is a look-alike (securee), and a real bank will not ask for your password and card in a surprise form."
+      },
+      {
+        id: "tax-giftcards",
+        answer: "scam",
+        from: "Tax Recovery",
+        number: "(555) 014-8831",
+        context: "This number is not in your contacts",
+        body: "This is the tax office. You owe a penalty today. Buy gift cards and read the codes to us at (555) 014-8831 to avoid a warrant.",
+        link: "",
+        tip: "Scam: tax offices contact you by mail first and will never ask for gift cards or threaten a warrant by text."
+      },
+      {
+        id: "romance-fee",
+        answer: "scam",
+        from: "Alex",
+        number: "(555) 014-2250",
+        context: "This number is not in your contacts",
+        body: "Hi, we talked online last month. I’m overseas and need you to hold $3,000 for me. Send a $200 processing fee first so the funds can be released.",
+        link: "",
+        tip: "Scam: someone you have not really met asking for a processing fee to “release” money is an advance-fee trick."
+      },
+      {
+        id: "mailbox-full",
+        answer: "scam",
+        from: "Storage Alert",
+        number: "(555) 014-0199",
+        context: "You did not get an official email warning first",
+        body: "Your mailbox is full and will be deleted in 1 hour. Unlock it and enter your email password to keep your messages.",
+        link: "free-storage-alert.example.com/inbox",
+        tip: "Scam: a one-hour threat plus a request for your email password is a credential-stealing trick."
+      },
+      {
+        id: "package-held",
+        answer: "check",
+        from: "Package Notice",
+        number: "(555) 016-1402",
+        context: "You are waiting on a delivery, but this is not a number you saved",
+        body: "Your package is being held. Confirm your address and a $1.29 redelivery fee to release it.",
+        link: "packagetracklng.example.com/redeliver",
+        tip: "Check first: the link is a look-alike. Open the shipper’s official app or site you already use — don’t pay from this text."
+      },
+      {
+        id: "bank-fraud-call",
+        answer: "check",
+        from: "Fraud Desk",
+        number: "(555) 016-4402",
+        context: "This number is not the one on the back of your card",
+        body: "Fraud alert: a $482 charge was declined. Call (555) 016-4402 or use the link to confirm it was you.",
+        link: "bank-verify.example.com/alert",
+        tip: "Check first: hang up the idea of using this number. Call the bank using the number on the back of your card, or open the official app."
+      },
+      {
+        id: "unpaid-toll",
+        answer: "check",
+        from: "Toll Notice",
+        number: "(555) 016-3018",
+        context: "You did drive this week, but this is not a number you saved",
+        body: "Unpaid toll of $12.40. Pay within 48 hours to avoid a $75 penalty.",
+        link: "city-toll-pay.example.com/invoice",
+        tip: "Check first: toll texts are often faked. Sign in on the official toll site or app you already use, not this link."
+      },
+      {
+        id: "unsolicited-code",
+        answer: "check",
+        from: "Bank Codes",
+        number: "(555) 016-7002",
+        context: "You did not request a code",
+        body: "Your one-time code is 773102. If this wasn’t you, review recent sign-in activity here.",
+        link: "bank-review.example.com/activity",
+        tip: "Check first: you didn’t ask for this code, so don’t share it and don’t tap the link. Open your bank’s official app to see if someone is trying to get in."
+      },
+      {
+        id: "utility-shutoff",
+        answer: "check",
+        from: "City Power",
+        number: "(555) 016-2190",
+        context: "This is not the number on your last bill",
+        body: "Your utility bill is 3 days overdue. Pay now to avoid shutoff tomorrow morning.",
+        link: "citypower-billing.example.com/pay",
+        tip: "Check first: shutoff threats plus a new pay link are a common trick. Log in through the official site or app you already use, or call the number on a past bill."
+      },
+      {
+        id: "reschedule-new-number",
+        answer: "check",
+        from: "Scheduling Desk",
+        number: "(555) 016-2290",
+        context: "This is not the number on your appointment card",
+        body: "We need to reschedule your appointment. Call us at (555) 016-2290 to pick a new time today.",
+        link: "",
+        tip: "Check first: call the clinic back on the number already on your appointment card, not the new number in this text."
+      },
+      {
+        id: "payroll-update",
+        answer: "check",
+        from: "Payroll Desk",
+        number: "(555) 016-7744",
+        context: "This is not a number you have saved for work",
+        body: "Please update your direct deposit by Friday so your next paycheck is not delayed.",
+        link: "hr-payroll-secure.example.com/update",
+        tip: "Check first: confirm with payroll or HR in person or on a number you already have. Don’t enter bank details from a surprise link."
+      },
+      {
+        id: "email-texas-login",
+        answer: "check",
+        from: "Sign-in Alerts",
+        number: "(555) 016-0833",
+        context: "You have not been traveling",
+        body: "A device in Texas just signed into your email. Review it now if this wasn’t you.",
+        link: "email-secure-login.example.com/review",
+        tip: "Check first: a sign-in alert can be real or fake. Open your email the usual way and check recent devices — don’t use the link in the text."
+      },
+      {
+        id: "parking-ticket",
+        answer: "check",
+        from: "Citations",
+        number: "(555) 016-5126",
+        context: "You do not remember a ticket, but you did park in town yesterday",
+        body: "Parking ticket #4419 for $65 is due in 3 days. View the photo and pay online.",
+        link: "city-citations.example.com/pay",
+        tip: "Check first: look up the ticket on the city’s official site or at the parking office, not through this surprise link."
+      },
+      {
+        id: "rx-pay-ahead",
+        answer: "check",
+        from: "Pharmacy Desk",
+        number: "(555) 016-3341",
+        context: "This is not your pharmacy’s usual number",
+        body: "Your prescription is ready. Pay $8.00 ahead of pickup and we’ll hold it at the window.",
+        link: "rx-pickup.example.com/pay",
+        tip: "Check first: pharmacies rarely take payment through a mystery text link. Call your pharmacy on the number you already have."
+      },
+      {
+        id: "voicemail-link",
+        answer: "check",
+        from: "Voice Mail",
+        number: "(555) 016-9088",
+        context: "You missed a call from a number you don’t recognize",
+        body: "New voice mail from (555) 013-9088. Tap to listen now.",
+        link: "voicemail-play.example.com/msg",
+        tip: "Check first: don’t tap a listen link. Call your own voice mail the usual way, or ignore a message from a number you don’t know."
+      },
+      {
+        id: "sub-cancel",
+        answer: "check",
+        from: "Billing Alerts",
+        number: "(555) 016-9901",
+        context: "You don’t remember starting this subscription",
+        body: "Your subscription renews tomorrow for $89.99. Cancel now if you don’t want to be charged.",
+        link: "billing-manage.example.com/cancel",
+        tip: "Check first: open the official app or site you already use, or check your bank statement. Don’t cancel or pay through this link."
+      }
+    ];
+
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenEnd = document.getElementById("screen-end");
+    var startBest = document.getElementById("start-best");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudTime = document.getElementById("hud-time");
+    var hudStreak = document.getElementById("hud-streak");
+    var timerEl = document.getElementById("timer");
+    var timerFill = document.getElementById("timer-fill");
+    var phoneCard = document.getElementById("phone-card");
+    var msgAvatar = document.getElementById("msg-avatar");
+    var msgFrom = document.getElementById("msg-from");
+    var msgNumber = document.getElementById("msg-number");
+    var msgContext = document.getElementById("msg-context");
+    var msgThread = document.getElementById("msg-thread");
+    var feedbackEl = document.getElementById("feedback");
+    var feedbackAnswer = document.getElementById("feedback-answer");
+    var feedbackVerdict = document.getElementById("feedback-verdict");
+    var feedbackTip = document.getElementById("feedback-tip");
+    var btnSafe = document.getElementById("btn-safe");
+    var btnCheck = document.getElementById("btn-check");
+    var btnScam = document.getElementById("btn-scam");
+    var btnPlay = document.getElementById("btn-play");
+    var btnAgain = document.getElementById("btn-again");
+
+    var deck = [];
+    var index = 0;
+    var score = 0;
+    var streak = 0;
+    var correctCount = 0;
+    var answeredCount = 0;
+    var misses = [];
+    var locked = false;
+    var timerId = null;
+    var timeLeft = 0;
+    var timeLimit = START_SECONDS;
+    var lastTick = 0;
+    var audioCtx = null;
+    var swipeStart = null;
+
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundCorrect() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+    function soundWrong() { beep(180, 0.28, "sawtooth", 0.05); }
+    function soundTimeout() { beep(320, 0.35, "triangle", 0.05); }
+
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+
+    function dealRound() {
+      var groups = { safe: [], scam: [], check: [] };
+      MESSAGES.forEach(function (m) { groups[m.answer].push(m); });
+      var per = Math.floor(ROUND_SIZE / 3);
+      var next = [];
+      ["safe", "scam", "check"].forEach(function (key) {
+        next = next.concat(shuffle(groups[key]).slice(0, per));
+      });
+      return shuffle(next);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+
+    function answerLabel(value) {
+      if (value === "safe") return "Safe";
+      if (value === "scam") return "Scam";
+      if (value === "check") return "Check First";
+      return value;
+    }
+
+    function initials(name) {
+      var parts = String(name).replace(/[^A-Za-z0-9’' ]/g, " ").trim().split(/\s+/);
+      if (!parts[0]) return "?";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (index + 1) + " / " + ROUND_SIZE;
+      hudStreak.textContent = streak >= 2 ? "Streak ×" + streak + "  •  bonus points!" : "";
+    }
+
+    function renderMessage(msg) {
+      msgAvatar.textContent = initials(msg.from);
+      msgFrom.textContent = msg.from;
+      msgNumber.textContent = msg.number;
+      msgContext.innerHTML = "<strong>Heads-up:</strong> " + escapeHtml(msg.context);
+      var html = '<div class="stamp">Today · 9:41 AM</div>';
+      html += '<div class="bubble">' + escapeHtml(msg.body);
+      if (msg.link) {
+        html += '<span class="fake-link">' + escapeHtml(msg.link) + "</span>";
+      }
+      html += "</div>";
+      msgThread.innerHTML = html;
+
+      document.body.setAttribute("data-correct", msg.answer);
+      document.body.setAttribute("data-msg-id", msg.id);
+      document.body.setAttribute("data-phase", "playing");
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        cancelAnimationFrame(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      timeLimit = Math.max(MIN_SECONDS, START_SECONDS - index * TIME_STEP);
+      timeLeft = timeLimit;
+      lastTick = performance.now();
+      timerEl.classList.remove("warn", "danger");
+      timerFill.style.transform = "scaleX(1)";
+      hudTime.textContent = String(Math.ceil(timeLeft));
+
+      function tick(now) {
+        var dt = (now - lastTick) / 1000;
+        lastTick = now;
+        timeLeft -= dt;
+        var pct = Math.max(0, timeLeft / timeLimit);
+        timerFill.style.transform = "scaleX(" + pct + ")";
+        timerEl.classList.toggle("warn", pct < 0.4 && pct >= 0.2);
+        timerEl.classList.toggle("danger", pct < 0.2);
+        hudTime.textContent = String(Math.max(0, Math.ceil(timeLeft)));
+        if (timeLeft <= 0) {
+          timerId = null;
+          settleAnswer(null, true);
+          return;
+        }
+        timerId = requestAnimationFrame(tick);
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    function setChoicesEnabled(on) {
+      btnSafe.disabled = !on;
+      btnCheck.disabled = !on;
+      btnScam.disabled = !on;
+    }
+
+    function showMessage() {
+      locked = false;
+      setChoicesEnabled(true);
+      feedbackEl.classList.remove("show", "ok", "bad");
+      document.querySelector(".pane").classList.remove("is-feedback");
+      renderMessage(deck[index]);
+      updateHud();
+      startTimer();
+    }
+
+    function settleAnswer(guess, timedOut) {
+      if (locked) return;
+      locked = true;
+      stopTimer();
+      setChoicesEnabled(false);
+
+      var msg = deck[index];
+      var correct = !timedOut && guess === msg.answer;
+      answeredCount += 1;
+
+      var verdict;
+      var gained = 0;
+      if (timedOut) {
+        streak = 0;
+        soundTimeout();
+        verdict = "Time’s up";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "Correct answer: " + answerLabel(msg.answer);
+        misses.push({
+          from: msg.from,
+          guessed: "Timed out",
+          correct: answerLabel(msg.answer),
+          tip: msg.tip
+        });
+      } else if (correct) {
+        streak += 1;
+        correctCount += 1;
+        var speed = Math.round(SPEED_MAX * Math.max(0, timeLeft) / timeLimit);
+        gained = BASE_POINTS + speed + (streak - 1) * STREAK_BONUS;
+        score += gained;
+        soundCorrect();
+        verdict = "Correct  +" + gained;
+        feedbackEl.classList.add("ok");
+        feedbackAnswer.textContent = answerLabel(msg.answer);
+      } else {
+        streak = 0;
+        soundWrong();
+        verdict = "Missed it";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "You said " + answerLabel(guess) + " · it was " + answerLabel(msg.answer);
+        misses.push({
+          from: msg.from,
+          guessed: answerLabel(guess),
+          correct: answerLabel(msg.answer),
+          tip: msg.tip
+        });
+      }
+
+      feedbackVerdict.textContent = verdict;
+      feedbackTip.textContent = msg.tip;
+      feedbackEl.classList.add("show");
+      document.querySelector(".pane").classList.add("is-feedback");
+      updateHud();
+      document.body.setAttribute("data-phase", "feedback");
+      document.body.setAttribute("data-last-result", correct ? "correct" : (timedOut ? "timeout" : "wrong"));
+      document.body.setAttribute("data-last-gained", String(gained));
+      document.body.setAttribute("data-score", String(score));
+      document.body.setAttribute("data-streak", String(streak));
+
+      setTimeout(advance, FEEDBACK_MS);
+    }
+
+    function advance() {
+      if (index >= ROUND_SIZE - 1) {
+        endGame();
+        return;
+      }
+      index += 1;
+      showMessage();
+    }
+
+    function rankTitle(correct) {
+      if (correct === ROUND_SIZE) return "Inbox Ace";
+      if (correct >= 11) return "Sharp Eye";
+      if (correct >= 9) return "On the Watch";
+      if (correct >= 6) return "Getting There";
+      return "Keep Practicing";
+    }
+
+    function startGame() {
+      unlockAudio();
+      deck = dealRound();
+      index = 0;
+      score = 0;
+      streak = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      misses = [];
+      document.body.setAttribute("data-score", "0");
+      document.body.setAttribute("data-streak", "0");
+      showScreen("play");
+      showMessage();
+    }
+
+    function endGame() {
+      stopTimer();
+      document.body.removeAttribute("data-correct");
+      document.body.setAttribute("data-phase", "end");
+      document.body.setAttribute("data-score", String(score));
+
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(best);
+
+      document.getElementById("end-rank").textContent = rankTitle(correctCount);
+      document.getElementById("end-title").textContent = "Round complete · " + correctCount + " of " + answeredCount + " correct";
+      document.getElementById("end-score").textContent = score;
+      document.getElementById("end-accuracy").textContent = correctCount + "/" + answeredCount;
+      document.getElementById("end-best").textContent = best;
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      var recapTitle = document.getElementById("end-recap-title");
+      var box = document.getElementById("end-misses");
+      if (misses.length === 0) {
+        recapTitle.textContent = "Nice work";
+        box.innerHTML = '<p class="all-clear">You sorted every message. Keep using official apps and numbers you already have when a text asks you to act.</p>';
+      } else {
+        recapTitle.textContent = "Messages you missed";
+        box.innerHTML = misses.map(function (m) {
+          return '<div class="miss"><div class="miss-head">' +
+            escapeHtml(m.from) + " · You: " + escapeHtml(m.guessed) +
+            " · Answer: " + escapeHtml(m.correct) +
+            "</div><div class=\"miss-tip\">" + escapeHtml(m.tip) + "</div></div>";
+        }).join("");
+      }
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnSafe.addEventListener("click", function () { settleAnswer("safe", false); });
+    btnCheck.addEventListener("click", function () { settleAnswer("check", false); });
+    btnScam.addEventListener("click", function () { settleAnswer("scam", false); });
+
+    document.addEventListener("keydown", function (event) {
+      var key = event.key;
+      if (key === "Enter") {
+        if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+          startGame();
+        }
+        return;
+      }
+      if (screenPlay.classList.contains("hidden") || locked) return;
+      if (key === "ArrowLeft" || key === "a" || key === "A") {
+        event.preventDefault();
+        settleAnswer("safe", false);
+      } else if (key === "ArrowUp" || key === "c" || key === "C") {
+        event.preventDefault();
+        settleAnswer("check", false);
+      } else if (key === "ArrowRight" || key === "d" || key === "D") {
+        event.preventDefault();
+        settleAnswer("scam", false);
+      }
+    });
+
+    phoneCard.addEventListener("touchstart", function (event) {
+      if (locked || !event.changedTouches.length) return;
+      var t = event.changedTouches[0];
+      swipeStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+    }, { passive: true });
+
+    phoneCard.addEventListener("touchend", function (event) {
+      if (!swipeStart || locked) { swipeStart = null; return; }
+      var t = event.changedTouches[0];
+      var dx = t.clientX - swipeStart.x;
+      var dy = t.clientY - swipeStart.y;
+      var dt = Date.now() - swipeStart.time;
+      swipeStart = null;
+      if (dt > 800) return;
+      var ax = Math.abs(dx);
+      var ay = Math.abs(dy);
+      if (ax < 50 && ay < 50) return;
+      if (ax > ay * 1.15) {
+        settleAnswer(dx > 0 ? "safe" : "scam", false);
+      } else if (dy < 0 && ay > ax) {
+        settleAnswer("check", false);
+      }
+    }, { passive: true });
+
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+  </script>
+</body>
+</html>
