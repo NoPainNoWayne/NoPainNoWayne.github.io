@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Privacy Settings Showdown</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as the other NoPainNoWayne games) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+      --check: #C4891A;
+      --check-deep: #8E6410;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(24px, 6.8vw, 36px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; overflow-wrap: anywhere; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; touch-action: manipulation; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud strong { color: var(--gold); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    /* ===== Phone-style profile card ===== */
+    .phone {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 22px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #1a2a40;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 14px 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cream);
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      letter-spacing: 0.02em;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+    .status-icons svg { display: block; }
+
+    .profile-head {
+      background: linear-gradient(180deg, var(--navy-mid), #10233c);
+      color: var(--cream);
+      padding: 12px 14px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      flex: 0 0 auto;
+      background: rgba(0, 0, 0, 0.22);
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+    .who { flex: 1 1 auto; min-width: 0; }
+    .who-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gold);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .who-meta {
+      font-size: 12.5px;
+      color: var(--cream);
+      opacity: 0.85;
+      overflow-wrap: anywhere;
+      margin-top: 2px;
+    }
+
+    .brief {
+      background: #F3EBDA;
+      color: #3A4A5A;
+      font-size: 12.5px;
+      line-height: 1.4;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+      position: relative;
+      z-index: 2;
+    }
+    .brief strong { color: var(--ink); }
+
+    .scroll-pane {
+      max-height: min(58vh, 520px);
+      overflow: hidden auto;
+      padding: 8px 10px 12px;
+      background: var(--card);
+      position: relative;
+      z-index: 1;
+    }
+
+    .group-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--navy-light);
+      padding: 8px 4px 4px;
+    }
+
+    .item {
+      background: #FFF;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 10px 8px;
+      margin-bottom: 8px;
+    }
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .item-label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--navy-light);
+      overflow-wrap: anywhere;
+    }
+    .item-value {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.35;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .seg {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      width: 100%;
+    }
+    .seg button {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 2px;
+      border-radius: 999px;
+      background: #EFE8D6;
+      color: var(--ink);
+      border: 2px solid transparent;
+      min-width: 0;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+    .seg button.on {
+      background: var(--navy);
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+    .seg button:hover { background: #E5DCC6; }
+    .seg button.on:hover { background: var(--navy); color: var(--gold); }
+
+    .lock-wrap { margin-top: 10px; }
+    .hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--gold-soft);
+      margin: 8px 0 0;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    /* ===== Breakdown ===== */
+    .break-head {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .break-profile {
+      font-size: 15px;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+    }
+    .break-score {
+      font-size: clamp(32px, 9vw, 44px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .break-sub {
+      font-size: 13px;
+      color: var(--cream);
+      margin-top: 4px;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .row {
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+      color: var(--gold-soft);
+      margin-bottom: 2px;
+    }
+    .row-head span { overflow-wrap: anywhere; }
+    .row-pts { flex: 0 0 auto; color: var(--gold); font-variant-numeric: tabular-nums; }
+    .row-choice { color: var(--cream); font-size: 12.5px; margin-bottom: 2px; overflow-wrap: anywhere; }
+    .row-why { color: var(--cream); overflow-wrap: anywhere; }
+    .row.good .row-pts { color: #7DDC9A; }
+    .row.ok .row-pts { color: var(--gold); }
+    .row.bad .row-pts { color: #F0A39B; }
+
+    /* ===== End screen ===== */
+    .score-block { text-align: center; margin: 6px 0 14px; }
+    .end-rank {
+      text-align: center;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .end-title {
+      text-align: center;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+    }
+    .stats strong { color: var(--gold); }
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+    .all-clear { font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .scroll-pane { max-height: min(56vh, 480px); padding: 8px 8px 10px; }
+      .seg button { font-size: 11.5px; padding: 8px 1px; }
+      .item { padding: 8px 8px 7px; }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .scroll-pane { max-height: min(50vh, 360px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <!-- ===== START SCREEN ===== -->
+      <section id="screen-start" class="panel">
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <rect x="16" y="8" width="40" height="64" rx="10" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <circle cx="36" cy="30" r="9" fill="none" stroke="#D4AF37" stroke-width="3"/>
+          <path d="M22 52 C22 44 50 44 50 52 L50 58 L22 58 Z" fill="#D4AF37"/>
+          <rect x="30" y="14" width="12" height="10" rx="6" fill="none" stroke="#D4AF37" stroke-width="2.5"/>
+        </svg>
+        <h1>Privacy Settings Showdown</h1>
+        <p class="pitch">Can you lock down a profile without hiding the harmless stuff?</p>
+        <ul class="howto">
+          <li>You will lock down 3 made-up social profiles, one at a time. Each one gets a little harder.</li>
+          <li>Set every detail to <strong>Public</strong>, <strong>Friends</strong>, or <strong>Hidden</strong>. Then fix risky settings like location sharing, who can message you, and tagged photos.</li>
+          <li>Tap <strong>Lock it in</strong> to see your safety score and a short note on why each detail matters.</li>
+          <li>Hiding everything is not a perfect score. A favorite team is fine to share. A pet’s name, a full birthday, or an “away on vacation” post is not.</li>
+          <li>On a keyboard: <strong>Enter</strong> starts, locks in, and continues.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="fake-note">Every person, place, and phone number in this game is made up. Phone numbers use the 555 prefix only as practice. This is not a real social network.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== PLAY SCREEN ===== -->
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Profile<br><strong id="hud-progress">1 / 3</strong></div>
+          <div style="text-align:right">Level<br><strong id="hud-level">1</strong></div>
+        </div>
+
+        <article class="phone" id="profile-card">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>Profile</span>
+            <span class="status-icons" aria-hidden="true">
+              <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2" height="4" fill="#F3E2A0"/><rect x="4" y="4" width="2" height="6" fill="#F3E2A0"/><rect x="8" y="2" width="2" height="8" fill="#F3E2A0"/><rect x="12" y="0" width="2" height="10" fill="#F3E2A0" opacity="0.45"/></svg>
+              <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0" y="1" width="18" height="8" rx="2" fill="none" stroke="#F3E2A0" stroke-width="1"/><rect x="2" y="3" width="12" height="4" fill="#D4AF37"/><rect x="19" y="3" width="2" height="4" fill="#F3E2A0"/></svg>
+            </span>
+          </div>
+          <div class="profile-head">
+            <div class="avatar" id="profile-avatar">?</div>
+            <div class="who">
+              <div class="who-name" id="profile-name"></div>
+              <div class="who-meta" id="profile-meta"></div>
+            </div>
+          </div>
+          <div class="brief" id="profile-brief"></div>
+          <div class="scroll-pane">
+            <div class="group-label">Profile details</div>
+            <div id="details-list"></div>
+            <div class="group-label">Privacy settings</div>
+            <div id="settings-list"></div>
+          </div>
+        </article>
+
+        <div class="lock-wrap">
+          <button type="button" class="btn-play" id="btn-lock">Lock it in</button>
+        </div>
+        <p class="hint">Public, Friends, or Hidden — then fix the settings at the bottom.</p>
+      </section>
+
+      <!-- ===== SCORE BREAKDOWN ===== -->
+      <section id="screen-breakdown" class="panel hidden">
+        <p class="break-profile" id="break-profile"></p>
+        <div class="break-head">
+          <div class="score-label">Safety score</div>
+          <div class="break-score" id="break-score">0</div>
+          <p class="break-sub" id="break-sub"></p>
+        </div>
+        <div class="recap" id="break-recap">
+          <h2>Why it matters</h2>
+          <div id="breakdown-list"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-next">Next profile</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== END SCREEN ===== -->
+      <section id="screen-end" class="panel hidden">
+        <p class="end-rank" id="end-rank">Privacy Ace</p>
+        <p class="end-title" id="end-title">All 3 profiles locked in</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Out of<br><strong id="end-max">300</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap" id="end-recap">
+          <h2>How each profile went</h2>
+          <div id="end-levels"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Privacy Settings Showdown — a small teaching game about
+       locking down a social profile without hiding harmless
+       details. Everything lives in this one file so it can be
+       pasted into a Google Sites embed (a sandboxed iframe).
+       People, places, and phone numbers are fictional.
+       ============================================================ */
+
+    var BEST_KEY = "npnw-privacy-settings-showdown-best";
+    var VIS_LABELS = { public: "Public", friends: "Friends", hidden: "Hidden" };
+
+    var PROFILES = [
+      {
+        id: "maya",
+        name: "Maya Ellis",
+        meta: "Brookfield · New profile",
+        brief: "Maya just opened a new profile to keep up with friends. The defaults are wide open. Help her lock it down — and leave the harmless stuff visible.",
+        details: [
+          {
+            id: "team",
+            label: "Favorite team",
+            value: "Harbor Hawks",
+            def: "public",
+            scores: { public: 10, friends: 10, hidden: 4 },
+            why: "A favorite team is fun to share. It rarely helps someone break into an account."
+          },
+          {
+            id: "hobby",
+            label: "Hobby",
+            value: "Saturday pottery class",
+            def: "public",
+            scores: { public: 10, friends: 10, hidden: 4 },
+            why: "A hobby like pottery is fine to share. It does not give away a password hint or your address."
+          },
+          {
+            id: "pet",
+            label: "Pet’s name",
+            value: "Muffin",
+            def: "public",
+            scores: { public: 0, friends: 6, hidden: 15 },
+            why: "A pet’s name is a common answer to security questions. Keep it hidden so it is harder to guess."
+          },
+          {
+            id: "birthday",
+            label: "Full birthday",
+            value: "June 14, 2008",
+            def: "public",
+            scores: { public: 0, friends: 6, hidden: 15 },
+            why: "A full birthday can be used to guess security questions or to impersonate you. Keep the full date hidden."
+          },
+          {
+            id: "hometown",
+            label: "Hometown",
+            value: "Brookfield",
+            def: "public",
+            scores: { public: 3, friends: 12, hidden: 8 },
+            why: "A hometown is okay for friends to see, but posting it publicly can help a stranger piece together who you are."
+          },
+          {
+            id: "phone",
+            label: "Phone number",
+            value: "(555) 010-4482",
+            def: "public",
+            scores: { public: 0, friends: 6, hidden: 15 },
+            why: "A phone number in public is an open invitation to spam and scams. Keep it hidden."
+          }
+        ],
+        settings: [
+          {
+            id: "location",
+            label: "Location sharing",
+            hint: "A live map of your day",
+            def: "on",
+            options: [
+              { id: "off", label: "Off" },
+              { id: "friends", label: "Friends" },
+              { id: "on", label: "On" }
+            ],
+            scores: { off: 8, friends: 3, on: 0 },
+            why: "Turn location sharing off unless you have a clear reason. A live map of your day is more than most people need to see."
+          },
+          {
+            id: "messages",
+            label: "Who can message you",
+            hint: "Extended means friends of friends",
+            def: "anyone",
+            options: [
+              { id: "friends", label: "Friends" },
+              { id: "extended", label: "Extended" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { friends: 8, extended: 3, anyone: 0 },
+            why: "Let friends message you. “Anyone” opens the door to spam, scams, and strangers."
+          },
+          {
+            id: "tags",
+            label: "Tagged photos",
+            hint: "What happens when someone tags you",
+            def: "anyone",
+            options: [
+              { id: "ask", label: "Ask me" },
+              { id: "auto", label: "Auto" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { ask: 7, auto: 3, anyone: 0 },
+            why: "Ask before a tagged photo goes on your profile. That way a picture of your house or your location does not appear without you seeing it first."
+          }
+        ]
+      },
+      {
+        id: "jordan",
+        name: "Jordan Hale",
+        meta: "Millfield · New city, new job",
+        brief: "Jordan moved for a new job and is reconnecting online. Some details are fine to share. Others could help a stranger track a routine.",
+        details: [
+          {
+            id: "fun",
+            label: "Weekend hobby",
+            value: "I paint murals on weekends",
+            def: "public",
+            scores: { public: 10, friends: 10, hidden: 4 },
+            why: "A weekend hobby is harmless to share. It is not a password hint and it does not give away a home address."
+          },
+          {
+            id: "work",
+            label: "Workplace",
+            value: "Just started at North Pier Accounting",
+            def: "public",
+            scores: { public: 0, friends: 12, hidden: 8 },
+            why: "Sharing a workplace with friends is reasonable. Posting it for everyone can help a stranger find you in real life."
+          },
+          {
+            id: "school",
+            label: "School",
+            value: "Cedar Valley College",
+            def: "public",
+            scores: { public: 3, friends: 12, hidden: 8 },
+            why: "School is fine for friends. A public listing makes it easier to guess email addresses or security questions."
+          },
+          {
+            id: "pet",
+            label: "Pet’s name",
+            value: "Lucky",
+            def: "public",
+            scores: { public: 0, friends: 5, hidden: 12 },
+            why: "A pet’s name is a classic security-question answer. Keep it hidden."
+          },
+          {
+            id: "birthday",
+            label: "Full birthday",
+            value: "March 3, 2002",
+            def: "public",
+            scores: { public: 0, friends: 5, hidden: 12 },
+            why: "A full birthday can be used to guess logins or to impersonate you. Keep the full date hidden."
+          },
+          {
+            id: "hometown",
+            label: "Hometown",
+            value: "Millfield",
+            def: "public",
+            scores: { public: 3, friends: 10, hidden: 7 },
+            why: "Friends can see a hometown. Leaving it public helps a stranger build a picture of where you come from."
+          },
+          {
+            id: "routine",
+            label: "Daily routine",
+            value: "Coffee on Maple Street every morning at 7",
+            def: "public",
+            scores: { public: 0, friends: 5, hidden: 12 },
+            why: "A post that names a place and a time every day tells a stranger where to find you. Keep routines hidden."
+          },
+          {
+            id: "phone",
+            label: "Phone number",
+            value: "(555) 010-7721",
+            def: "public",
+            scores: { public: 0, friends: 4, hidden: 8 },
+            why: "A public phone number invites spam and scam calls. Keep it hidden."
+          }
+        ],
+        settings: [
+          {
+            id: "location",
+            label: "Location sharing",
+            hint: "Currently shared with friends",
+            def: "friends",
+            options: [
+              { id: "off", label: "Off" },
+              { id: "friends", label: "Friends" },
+              { id: "on", label: "On" }
+            ],
+            scores: { off: 4, friends: 2, on: 0 },
+            why: "Even sharing your location with friends can leak a live trail if an account is borrowed or guessed. Off is the safer default."
+          },
+          {
+            id: "messages",
+            label: "Who can message you",
+            hint: "Extended means friends of friends",
+            def: "extended",
+            options: [
+              { id: "friends", label: "Friends" },
+              { id: "extended", label: "Extended" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { friends: 4, extended: 2, anyone: 0 },
+            why: "Friends of friends are still strangers to you. Keep messaging to people you actually know."
+          },
+          {
+            id: "tags",
+            label: "Tagged photos",
+            hint: "Photos are being added automatically",
+            def: "auto",
+            options: [
+              { id: "ask", label: "Ask me" },
+              { id: "auto", label: "Auto" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { ask: 4, auto: 1, anyone: 0 },
+            why: "Automatic tags can publish a photo of your workplace or a night out before you have a chance to review it. Ask first."
+          }
+        ]
+      },
+      {
+        id: "sam",
+        name: "Sam Rivera",
+        meta: "Oakridge · Planning a trip",
+        brief: "Sam is excited about a family trip and posts a lot. The risky details here can tell a stranger when the house is empty.",
+        details: [
+          {
+            id: "team",
+            label: "Favorite team",
+            value: "Cedar Creek Hornets",
+            def: "public",
+            scores: { public: 10, friends: 10, hidden: 4 },
+            why: "Cheering for a team is harmless. You can leave a favorite team public."
+          },
+          {
+            id: "cheer",
+            label: "Recent post",
+            value: "Go Hornets! Big game Saturday.",
+            def: "public",
+            scores: { public: 8, friends: 8, hidden: 3 },
+            why: "A sports cheer does not give away a password hint, an address, or when the house is empty. Public is fine."
+          },
+          {
+            id: "vacation",
+            label: "Vacation post",
+            value: "Off to the coast for 10 days starting Friday! House will be empty.",
+            def: "public",
+            scores: { public: 0, friends: 6, hidden: 16 },
+            why: "A post that says you are away — and that the house is empty — tells the wrong person it is a good time to stop by. Share trip photos after you are home, or keep them hidden."
+          },
+          {
+            id: "home",
+            label: "Home description",
+            value: "The blue house on Oakridge Lane",
+            def: "public",
+            scores: { public: 0, friends: 5, hidden: 14 },
+            why: "A description of your house plus a street name is almost an address. Keep that hidden."
+          },
+          {
+            id: "checkin",
+            label: "Current check-in",
+            value: "Checking in at Oakridge Market",
+            def: "public",
+            scores: { public: 0, friends: 5, hidden: 12 },
+            why: "A live check-in tells people exactly where you are right now. Keep current location hidden."
+          },
+          {
+            id: "pet",
+            label: "Pet’s name",
+            value: "Baxter",
+            def: "public",
+            scores: { public: 0, friends: 4, hidden: 10 },
+            why: "A pet’s name is a common security-question answer. Keep it hidden."
+          },
+          {
+            id: "birthday",
+            label: "Full birthday",
+            value: "November 2, 1988",
+            def: "public",
+            scores: { public: 0, friends: 4, hidden: 10 },
+            why: "A full birthday can be used to guess security questions or to impersonate you. Keep the full date hidden."
+          },
+          {
+            id: "phone",
+            label: "Phone number",
+            value: "(555) 016-3304",
+            def: "public",
+            scores: { public: 0, friends: 4, hidden: 10 },
+            why: "A phone number on a public profile is easy to harvest for spam and scams. Keep it hidden."
+          }
+        ],
+        settings: [
+          {
+            id: "location",
+            label: "Location sharing",
+            hint: "Currently on for everyone",
+            def: "on",
+            options: [
+              { id: "off", label: "Off" },
+              { id: "friends", label: "Friends" },
+              { id: "on", label: "On" }
+            ],
+            scores: { off: 4, friends: 2, on: 0 },
+            why: "With a vacation coming up, a live location can confirm the house is empty. Turn it off."
+          },
+          {
+            id: "messages",
+            label: "Who can message you",
+            hint: "Anyone can send a message",
+            def: "anyone",
+            options: [
+              { id: "friends", label: "Friends" },
+              { id: "extended", label: "Extended" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { friends: 3, extended: 1, anyone: 0 },
+            why: "Open messaging is a common path for scams, especially around travel plans. Keep it to friends."
+          },
+          {
+            id: "tags",
+            label: "Tagged photos",
+            hint: "Anyone can add a tag",
+            def: "anyone",
+            options: [
+              { id: "ask", label: "Ask me" },
+              { id: "auto", label: "Auto" },
+              { id: "anyone", label: "Anyone" }
+            ],
+            scores: { ask: 3, auto: 1, anyone: 0 },
+            why: "A tagged photo of a packed car or an empty driveway can give away a trip. Review tags before they go up."
+          }
+        ]
+      }
+    ];
+
+    function choiceScore(item, choice) {
+      var n = item.scores[choice];
+      return typeof n === "number" ? n : 0;
+    }
+
+    function itemMax(item) {
+      var max = 0;
+      Object.keys(item.scores).forEach(function (k) {
+        if (item.scores[k] > max) max = item.scores[k];
+      });
+      return max;
+    }
+
+    function bestChoices(item) {
+      var max = itemMax(item);
+      return Object.keys(item.scores).filter(function (k) { return item.scores[k] === max; });
+    }
+
+    function bestChoiceLabel(item) {
+      var ids = bestChoices(item);
+      var names = ids.map(function (id) {
+        if (VIS_LABELS[id]) return VIS_LABELS[id];
+        var opt = (item.options || []).filter(function (o) { return o.id === id; })[0];
+        return opt ? opt.label : id;
+      });
+      if (names.length === 1) return names[0];
+      if (names.length === 2) return names[0] + " or " + names[1];
+      return names.join(", ");
+    }
+
+    function choiceLabel(item, choice) {
+      if (VIS_LABELS[choice]) return VIS_LABELS[choice];
+      var opt = (item.options || []).filter(function (o) { return o.id === choice; })[0];
+      return opt ? opt.label : choice;
+    }
+
+    function scoreLevel(profile, detailChoices, settingChoices) {
+      var rows = [];
+      var earned = 0;
+      var max = 0;
+      profile.details.forEach(function (item) {
+        var choice = detailChoices[item.id];
+        var got = choiceScore(item, choice);
+        var cap = itemMax(item);
+        earned += got;
+        max += cap;
+        rows.push({
+          id: item.id,
+          kind: "detail",
+          label: item.label,
+          choice: choice,
+          choiceLabel: choiceLabel(item, choice),
+          bestLabel: bestChoiceLabel(item),
+          earned: got,
+          max: cap,
+          why: item.why
+        });
+      });
+      profile.settings.forEach(function (item) {
+        var choice = settingChoices[item.id];
+        var got = choiceScore(item, choice);
+        var cap = itemMax(item);
+        earned += got;
+        max += cap;
+        rows.push({
+          id: item.id,
+          kind: "setting",
+          label: item.label,
+          choice: choice,
+          choiceLabel: choiceLabel(item, choice),
+          bestLabel: bestChoiceLabel(item),
+          earned: got,
+          max: cap,
+          why: item.why
+        });
+      });
+      return { earned: earned, max: max, rows: rows };
+    }
+
+    function hideAllChoices(profile) {
+      var details = {};
+      var settings = {};
+      profile.details.forEach(function (item) { details[item.id] = "hidden"; });
+      profile.settings.forEach(function (item) {
+        settings[item.id] = bestChoices(item)[0];
+      });
+      return { details: details, settings: settings };
+    }
+
+    function bestAllChoices(profile) {
+      var details = {};
+      var settings = {};
+      profile.details.forEach(function (item) { details[item.id] = bestChoices(item)[0]; });
+      profile.settings.forEach(function (item) { settings[item.id] = bestChoices(item)[0]; });
+      return { details: details, settings: settings };
+    }
+
+    function defaultChoices(profile) {
+      var details = {};
+      var settings = {};
+      profile.details.forEach(function (item) { details[item.id] = item.def; });
+      profile.settings.forEach(function (item) { settings[item.id] = item.def; });
+      return { details: details, settings: settings };
+    }
+
+    function totalMax() {
+      var n = 0;
+      PROFILES.forEach(function (p) {
+        var c = bestAllChoices(p);
+        n += scoreLevel(p, c.details, c.settings).max;
+      });
+      return n;
+    }
+
+    var MAX_SCORE = totalMax();
+
+    function rankTitle(score) {
+      var pct = MAX_SCORE ? score / MAX_SCORE : 0;
+      if (pct >= 0.9) return "Privacy Ace";
+      if (pct >= 0.75) return "Sharp Lock";
+      if (pct >= 0.6) return "On the Watch";
+      if (pct >= 0.4) return "Getting There";
+      return "Keep Practicing";
+    }
+
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenBreakdown = document.getElementById("screen-breakdown");
+    var screenEnd = document.getElementById("screen-end");
+    var startBest = document.getElementById("start-best");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudLevel = document.getElementById("hud-level");
+    var profileAvatar = document.getElementById("profile-avatar");
+    var profileName = document.getElementById("profile-name");
+    var profileMeta = document.getElementById("profile-meta");
+    var profileBrief = document.getElementById("profile-brief");
+    var detailsList = document.getElementById("details-list");
+    var settingsList = document.getElementById("settings-list");
+    var btnPlay = document.getElementById("btn-play");
+    var btnLock = document.getElementById("btn-lock");
+    var btnNext = document.getElementById("btn-next");
+    var btnAgain = document.getElementById("btn-again");
+
+    var levelIndex = 0;
+    var score = 0;
+    var levelResults = [];
+    var lastBreakdown = null;
+    var locked = false;
+    var audioCtx = null;
+
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundGood() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+
+    function soundOk() { beep(392, 0.16, "sine", 0.06); }
+
+    function soundLow() { beep(180, 0.28, "sawtooth", 0.05); }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function initials(name) {
+      return name.split(/\s+/).map(function (w) { return w.charAt(0); }).join("").slice(0, 2).toUpperCase();
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "playing");
+      screenBreakdown.classList.toggle("hidden", which !== "breakdown");
+      screenEnd.classList.toggle("hidden", which !== "end");
+      try {
+        if (document.activeElement && document.activeElement !== document.body) {
+          document.activeElement.blur();
+        }
+      } catch (err) { /* ignore */ }
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (levelIndex + 1) + " / " + PROFILES.length;
+      hudLevel.textContent = String(levelIndex + 1);
+    }
+
+    function setSegment(row, choice) {
+      row.setAttribute("data-value", choice);
+      var buttons = row.querySelectorAll(".seg button");
+      for (var i = 0; i < buttons.length; i++) {
+        var on = buttons[i].getAttribute("data-choice") === choice;
+        buttons[i].classList.toggle("on", on);
+        buttons[i].setAttribute("aria-pressed", on ? "true" : "false");
+      }
+    }
+
+    function bindSegment(row) {
+      row.addEventListener("click", function (event) {
+        var btn = event.target.closest("button[data-choice]");
+        if (!btn || locked) return;
+        setSegment(row, btn.getAttribute("data-choice"));
+      });
+    }
+
+    function renderSegment(options, current) {
+      return '<div class="seg" role="group">' + options.map(function (opt) {
+        var on = opt.id === current;
+        return '<button type="button" data-choice="' + escapeHtml(opt.id) + '"' +
+          ' aria-pressed="' + (on ? "true" : "false") + '"' +
+          ' class="' + (on ? "on" : "") + '">' + escapeHtml(opt.label) + "</button>";
+      }).join("") + "</div>";
+    }
+
+    function renderProfile() {
+      var profile = PROFILES[levelIndex];
+      profileAvatar.textContent = initials(profile.name);
+      profileName.textContent = profile.name;
+      profileMeta.textContent = profile.meta;
+      profileBrief.innerHTML = escapeHtml(profile.brief);
+
+      detailsList.innerHTML = "";
+      profile.details.forEach(function (item) {
+        var row = document.createElement("div");
+        row.className = "item";
+        row.setAttribute("data-item", item.id);
+        row.setAttribute("data-value", item.def);
+        row.innerHTML =
+          '<div class="item-top"><div class="item-label">' + escapeHtml(item.label) + "</div></div>" +
+          '<div class="item-value">' + escapeHtml(item.value) + "</div>" +
+          renderSegment(
+            [
+              { id: "public", label: "Public" },
+              { id: "friends", label: "Friends" },
+              { id: "hidden", label: "Hidden" }
+            ],
+            item.def
+          );
+        bindSegment(row);
+        detailsList.appendChild(row);
+      });
+
+      settingsList.innerHTML = "";
+      profile.settings.forEach(function (item) {
+        var row = document.createElement("div");
+        row.className = "item";
+        row.setAttribute("data-setting", item.id);
+        row.setAttribute("data-value", item.def);
+        row.innerHTML =
+          '<div class="item-top"><div class="item-label">' + escapeHtml(item.label) + "</div></div>" +
+          '<div class="item-value">' + escapeHtml(item.hint) + "</div>" +
+          renderSegment(item.options, item.def);
+        bindSegment(row);
+        settingsList.appendChild(row);
+      });
+    }
+
+    function collectChoices() {
+      var details = {};
+      var settings = {};
+      var dRows = detailsList.querySelectorAll("[data-item]");
+      for (var i = 0; i < dRows.length; i++) {
+        details[dRows[i].getAttribute("data-item")] = dRows[i].getAttribute("data-value");
+      }
+      var sRows = settingsList.querySelectorAll("[data-setting]");
+      for (var j = 0; j < sRows.length; j++) {
+        settings[sRows[j].getAttribute("data-setting")] = sRows[j].getAttribute("data-value");
+      }
+      return { details: details, settings: settings };
+    }
+
+    function applyChoices(detailChoices, settingChoices) {
+      Object.keys(detailChoices || {}).forEach(function (id) {
+        var row = detailsList.querySelector('[data-item="' + id + '"]');
+        if (row) setSegment(row, detailChoices[id]);
+      });
+      Object.keys(settingChoices || {}).forEach(function (id) {
+        var row = settingsList.querySelector('[data-setting="' + id + '"]');
+        if (row) setSegment(row, settingChoices[id]);
+      });
+    }
+
+    function toneFor(earned, max) {
+      if (earned === max) return "good";
+      if (earned === 0) return "bad";
+      return "ok";
+    }
+
+    function showBreakdown(result) {
+      lastBreakdown = result;
+      var profile = PROFILES[levelIndex];
+      document.getElementById("break-profile").textContent = profile.name + " · Profile " + (levelIndex + 1) + " of " + PROFILES.length;
+      document.getElementById("break-score").textContent = result.earned + " / " + result.max;
+      var pct = result.max ? Math.round((result.earned / result.max) * 100) : 0;
+      var sub = pct === 100
+        ? "Perfect lock — this profile is in great shape."
+        : pct >= 80
+          ? "Solid work. A few tweaks would make it even safer."
+          : pct >= 50
+            ? "A fair start. Read the notes and tighten the risky items."
+            : "This profile is still too open. The notes below explain why.";
+      document.getElementById("break-sub").textContent = sub;
+
+      var html = result.rows.map(function (row) {
+        var cls = toneFor(row.earned, row.max);
+        var choiceLine = row.earned === row.max
+          ? "You chose " + row.choiceLabel + "."
+          : "You chose " + row.choiceLabel + ". Better: " + row.bestLabel + ".";
+        return '<div class="row ' + cls + '" data-row="' + escapeHtml(row.id) + '">' +
+          '<div class="row-head"><span>' + escapeHtml(row.label) + '</span>' +
+          '<span class="row-pts">+' + row.earned + " / " + row.max + "</span></div>" +
+          '<div class="row-choice">' + escapeHtml(choiceLine) + "</div>" +
+          '<div class="row-why">' + escapeHtml(row.why) + "</div></div>";
+      }).join("");
+      document.getElementById("breakdown-list").innerHTML = html;
+
+      var isLast = levelIndex >= PROFILES.length - 1;
+      btnNext.textContent = isLast ? "See results" : "Next profile";
+
+      document.body.setAttribute("data-phase", "breakdown");
+      document.body.setAttribute("data-level-score", String(result.earned));
+      document.body.setAttribute("data-level-max", String(result.max));
+      document.body.setAttribute("data-score", String(score));
+      showScreen("breakdown");
+    }
+
+    function startGame() {
+      unlockAudio();
+      levelIndex = 0;
+      score = 0;
+      levelResults = [];
+      lastBreakdown = null;
+      locked = false;
+      document.body.setAttribute("data-score", "0");
+      document.body.setAttribute("data-level", "1");
+      document.body.removeAttribute("data-level-score");
+      showLevel();
+    }
+
+    function showLevel() {
+      locked = false;
+      updateHud();
+      renderProfile();
+      document.body.setAttribute("data-phase", "playing");
+      document.body.setAttribute("data-level", String(levelIndex + 1));
+      document.body.setAttribute("data-profile", PROFILES[levelIndex].id);
+      document.body.setAttribute("data-score", String(score));
+      showScreen("playing");
+      var pane = document.querySelector(".scroll-pane");
+      if (pane) pane.scrollTop = 0;
+    }
+
+    function lockIn() {
+      if (locked || screenPlay.classList.contains("hidden")) return;
+      locked = true;
+      var choices = collectChoices();
+      var profile = PROFILES[levelIndex];
+      var result = scoreLevel(profile, choices.details, choices.settings);
+      result.profileId = profile.id;
+      result.name = profile.name;
+      score += result.earned;
+      levelResults.push(result);
+      updateHud();
+      document.body.setAttribute("data-score", String(score));
+      var pct = result.max ? result.earned / result.max : 0;
+      if (pct >= 0.9) soundGood();
+      else if (pct >= 0.5) soundOk();
+      else soundLow();
+      showBreakdown(result);
+    }
+
+    function goNext() {
+      if (screenBreakdown.classList.contains("hidden")) return;
+      if (levelIndex < PROFILES.length - 1) {
+        levelIndex += 1;
+        showLevel();
+      } else {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      document.body.setAttribute("data-phase", "end");
+      document.body.setAttribute("data-score", String(score));
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(score);
+
+      document.getElementById("end-rank").textContent = rankTitle(score);
+      document.getElementById("end-title").textContent = "All " + PROFILES.length + " profiles locked in";
+      document.getElementById("end-score").textContent = score;
+      document.getElementById("end-max").textContent = String(MAX_SCORE);
+      document.getElementById("end-best").textContent = String(best);
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      var levelHtml = levelResults.map(function (r, i) {
+        var cls = toneFor(r.earned, r.max);
+        return '<div class="row ' + cls + '"><div class="row-head"><span>Profile ' + (i + 1) + ": " + escapeHtml(r.name) + "</span>" +
+          '<span class="row-pts">' + r.earned + " / " + r.max + "</span></div></div>";
+      }).join("");
+      var tip = '<p class="all-clear" style="margin-top:10px">A favorite team or a fun hobby is fine to share. Hide a pet’s name, a full birthday, a phone number, a live check-in, and any post that says the house is empty.</p>';
+      document.getElementById("end-levels").innerHTML = levelHtml + tip;
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    function showStart() {
+      locked = false;
+      refreshStartBest();
+      document.body.setAttribute("data-phase", "start");
+      document.body.removeAttribute("data-level");
+      document.body.removeAttribute("data-profile");
+      showScreen("start");
+    }
+
+    btnPlay.addEventListener("click", startGame);
+    btnLock.addEventListener("click", lockIn);
+    btnNext.addEventListener("click", goNext);
+    btnAgain.addEventListener("click", function () {
+      showStart();
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter") return;
+      if (event.repeat) return;
+      var tag = (event.target && event.target.tagName) || "";
+      if (tag === "BUTTON") {
+        var target = event.target;
+        var hidden = !target.offsetParent || (target.closest && target.closest(".hidden"));
+        if (!hidden) return;
+      }
+      event.preventDefault();
+      if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+        startGame();
+      } else if (!screenPlay.classList.contains("hidden")) {
+        lockIn();
+      } else if (!screenBreakdown.classList.contains("hidden")) {
+        goNext();
+      }
+    });
+
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+    document.body.setAttribute("data-max", String(MAX_SCORE));
+  </script>
+</body>
+</html>

@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Phish or Legit Inbox</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as the other NoPainNoWayne games) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; min-width: 0; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(24px, 7vw, 36px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud > div { min-width: 0; }
+    .hud strong { color: var(--gold); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    .streak {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-height: 1.2em;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      border-radius: 999px;
+      transform-origin: left center;
+    }
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    .tap-hint {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      margin: 0 0 8px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .tap-hint strong { color: var(--gold); display: block; margin-top: 2px; }
+
+    .mail {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #1a2a40;
+      min-width: 0;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 14px 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cream);
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      letter-spacing: 0.02em;
+    }
+    .status-icons { display: flex; align-items: center; gap: 6px; }
+    .status-icons svg { display: block; }
+
+    .context {
+      background: #F3EBDA;
+      color: #3A4A5A;
+      font-size: 12.5px;
+      line-height: 1.35;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .context strong { color: var(--ink); }
+
+    .mail-meta {
+      padding: 10px 12px 8px;
+      background: #FFFBF3;
+      border-bottom: 1px solid var(--line);
+      min-width: 0;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 6px 8px;
+      align-items: start;
+      margin-bottom: 6px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .meta-row:last-child { margin-bottom: 0; }
+    .meta-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-top: 2px;
+    }
+    .meta-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .from-name { font-weight: 800; color: var(--navy); }
+    .from-addr, .to-addr { font-size: 12.5px; color: var(--muted); }
+    .subject-text { font-weight: 700; color: var(--ink); }
+    .stamp {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .mail-body {
+      padding: 12px 12px 16px;
+      min-height: 132px;
+      font-size: 15px;
+      line-height: 1.5;
+      background: linear-gradient(180deg, #FFFBF3, #F7F0E0);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      color: var(--ink);
+    }
+
+    .mark {
+      cursor: pointer;
+      border-radius: 3px;
+      border-bottom: 1.5px dashed rgba(16, 32, 51, 0.3);
+      padding: 0 1px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .mark.picked {
+      background: #F3E2A0;
+      border-bottom-color: var(--gold-deep);
+      box-shadow: inset 0 -2px 0 var(--gold);
+    }
+
+    .is-feedback .mark { cursor: default; }
+    .is-feedback .mark.was-flag.picked {
+      background: #C8EBD8;
+      box-shadow: inset 0 -2px 0 var(--real);
+      border-bottom-color: var(--real-deep);
+    }
+    .is-feedback .mark.was-flag:not(.picked) {
+      background: #F8D4D0;
+      box-shadow: inset 0 -2px 0 var(--scam);
+      border-bottom-color: var(--scam-deep);
+    }
+    .is-feedback .mark.picked:not(.was-flag) {
+      background: #E8E0D0;
+      box-shadow: inset 0 -2px 0 #9A8B70;
+      border-bottom-color: #8A7B60;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 10px;
+      background: var(--cream);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 12px 14px 14px;
+      border: 2px solid var(--gold);
+    }
+    .feedback.show { display: block; }
+    body.fast .feedback { transition: none; }
+    .feedback.ok { border-color: var(--real); }
+    .feedback.bad { border-color: var(--scam); }
+    .feedback .verdict {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      overflow-wrap: anywhere;
+    }
+    .feedback.ok .verdict { color: var(--real); }
+    .feedback.bad .verdict { color: var(--scam); }
+    .feedback .tip {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+    .feedback .answer-line {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+    }
+    .feedback .flag-recap {
+      font-size: 13.5px;
+      line-height: 1.4;
+      color: #3A4A5A;
+      margin: 0 0 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-choice {
+      font-size: clamp(16px, 4vw, 18px);
+      font-weight: 800;
+      padding: 12px 8px 10px;
+      border-radius: 14px;
+      color: #fff;
+      letter-spacing: 0.01em;
+      min-height: 58px;
+      line-height: 1.15;
+    }
+    .btn-choice small {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+      margin-top: 3px;
+    }
+    .btn-legit { background: var(--real); box-shadow: 0 4px 0 var(--real-deep); }
+    .btn-phish { background: var(--scam); box-shadow: 0 4px 0 var(--scam-deep); }
+    .btn-choice:hover { filter: brightness(1.06); }
+    .btn-choice:active { transform: translateY(2px); box-shadow: 0 2px 0 currentColor; }
+    .btn-choice:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    .score-block { text-align: center; margin: 6px 0 14px; }
+    .end-rank {
+      text-align: center;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .end-title {
+      text-align: center;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+      flex-wrap: wrap;
+    }
+    .stats strong { color: var(--gold); }
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .miss {
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .miss:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .miss-head { font-weight: 700; color: var(--gold-soft); margin-bottom: 2px; overflow-wrap: anywhere; }
+    .miss-tip { color: var(--cream); overflow-wrap: anywhere; }
+    .all-clear { font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .mail-body { min-height: 110px; padding: 10px 10px 14px; }
+      .btn-choice { padding: 10px 6px 8px; min-height: 54px; }
+      .choices { gap: 6px; }
+      .meta-row { grid-template-columns: 46px minmax(0, 1fr); }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .mail-body { min-height: 96px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <section id="screen-start" class="panel">
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <rect x="8" y="18" width="56" height="44" rx="6" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <path d="M11 22 L36 40 L61 22" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="50" cy="52" r="14" fill="#0A1B33" stroke="#D4AF37" stroke-width="3"/>
+          <circle cx="50" cy="52" r="7" fill="none" stroke="#D4AF37" stroke-width="2.5"/>
+          <path d="M56 58 L63 66" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <h1>Phish or Legit Inbox</h1>
+        <p class="pitch">Can you spot the traps in a fake inbox before they fool you?</p>
+        <ul class="howto">
+          <li>12 practice emails arrive one at a time, and a short timer is running.</li>
+          <li>Tap any suspicious part: a fake sender address, an urgent or threatening tone, an odd link, a request for a password or payment, or a name that doesn’t match the address.</li>
+          <li>Then tap <strong>Phish</strong> if it is a trick, or <strong>Legit</strong> if it looks genuine. Real messages have nothing to flag — if nothing looks off, leave it unmarked and choose Legit.</li>
+          <li>You score points for correct clues and the right verdict, plus a speed bonus and a streak bonus. After each email, a tip explains the tells.</li>
+          <li>On a keyboard: <strong>L</strong> or ← Legit, <strong>P</strong> or → Phish. Press Enter to start.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="fake-note">Every email, link, and phone number in this game is made up. The companies are fictional, and links use example-style domains only as practice.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Email<br><strong id="hud-progress">1 / 12</strong></div>
+          <div style="text-align:right">Time<br><strong id="hud-time">20</strong></div>
+        </div>
+        <div class="streak" id="hud-streak"></div>
+        <div class="timer" id="timer"><div class="timer-fill" id="timer-fill"></div></div>
+        <p class="tap-hint" id="tap-hint">Tap anything that looks off, then choose Phish or Legit. <strong id="flag-count">Clues marked: 0</strong></p>
+
+        <article class="mail" id="mail-card">
+          <div class="status-bar">
+            <span>9:41</span>
+            <span>Inbox</span>
+            <span class="status-icons" aria-hidden="true">
+              <svg width="14" height="10" viewBox="0 0 14 10"><rect x="0" y="6" width="2" height="4" fill="#F3E2A0"/><rect x="4" y="4" width="2" height="6" fill="#F3E2A0"/><rect x="8" y="2" width="2" height="8" fill="#F3E2A0"/><rect x="12" y="0" width="2" height="10" fill="#F3E2A0" opacity="0.45"/></svg>
+              <svg width="22" height="10" viewBox="0 0 22 10"><rect x="0" y="1" width="18" height="8" rx="2" fill="none" stroke="#F3E2A0" stroke-width="1"/><rect x="2" y="3" width="12" height="4" fill="#D4AF37"/><rect x="19" y="3" width="2" height="4" fill="#F3E2A0"/></svg>
+            </span>
+          </div>
+          <div class="context" id="msg-context"></div>
+          <div class="mail-meta">
+            <div class="meta-row">
+              <div class="meta-label">From</div>
+              <div class="meta-value">
+                <div class="from-name" id="msg-from-name"></div>
+                <div class="from-addr" id="msg-from-addr"></div>
+              </div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">To</div>
+              <div class="meta-value"><div class="to-addr" id="msg-to">you@example.com</div></div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Subject</div>
+              <div class="meta-value"><div class="subject-text" id="msg-subject"></div></div>
+            </div>
+            <div class="stamp">Today · 9:41 AM</div>
+          </div>
+          <div class="mail-body" id="msg-body"></div>
+        </article>
+
+        <div class="feedback" id="feedback">
+          <div class="answer-line" id="feedback-answer"></div>
+          <div class="verdict" id="feedback-verdict"></div>
+          <p class="flag-recap" id="feedback-flags"></p>
+          <p class="tip" id="feedback-tip"></p>
+        </div>
+
+        <div class="choices" id="choices">
+          <button type="button" class="btn-choice btn-legit" id="btn-legit">
+            Legit
+            <small>L or Left</small>
+          </button>
+          <button type="button" class="btn-choice btn-phish" id="btn-phish">
+            Phish
+            <small>P or Right</small>
+          </button>
+        </div>
+      </section>
+
+      <section id="screen-end" class="panel hidden">
+        <p class="end-rank" id="end-rank">Inbox Inspector</p>
+        <p class="end-title" id="end-title">Round complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Verdicts<br><strong id="end-accuracy">0/12</strong></div>
+            <div>Flags<br><strong id="end-flags">0/0</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap" id="end-recap">
+          <h2 id="end-recap-title">Emails you missed</h2>
+          <div id="end-misses"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+  <script>
+    /* ============================================================
+       Phish or Legit Inbox — a small teaching game about spotting
+       clues in everyday email. Everything lives in this one file
+       so it can be pasted into a Google Sites embed (a sandboxed
+       iframe). Emails, links, and phone numbers are fictional.
+       ============================================================ */
+
+    var ROUND_SIZE = 12;
+    var START_SECONDS = 20;
+    var MIN_SECONDS = 14;
+    var TIME_STEP = 0.4;
+    var FAST = location.hash === "#fast";
+    var FEEDBACK_MS = FAST ? 800 : 2800;
+    if (FAST) document.body.classList.add("fast");
+    var FLAG_POINTS = 25;
+    var VERDICT_POINTS = 100;
+    var SPEED_MAX = 50;
+    var STREAK_BONUS = 25;
+    var BEST_KEY = "npnw-phish-or-legit-inbox-best";
+
+    var FLAG_LABELS = {
+      sender: "Fake or look-alike sender address",
+      urgency: "Urgent or threatening tone",
+      link: "Odd or unexpected link",
+      payment: "Request for a password, code, or payment",
+      branding: "The name and the address do not match"
+    };
+
+    var EMAILS = [
+      {
+        id: "library-due",
+        answer: "legit",
+        fromName: "Oak Street Library",
+        fromNameFlag: null,
+        fromAddr: "notices@oakstreetlibrary.example.com",
+        fromAddrFlag: null,
+        subject: "Your book is due Thursday",
+        subjectFlag: null,
+        context: "You have a library card at this branch",
+        body: [
+          { text: "Your book is due Thursday. Renew it at the desk or in the library app you already use." },
+          { text: " No late fees this week. Hope to see you soon." }
+        ],
+        tip: "Legit: a due-date reminder from the library’s usual address, sending you back to a desk or an app you already use, with no surprise link or payment ask."
+      },
+      {
+        id: "clinic-reminder",
+        answer: "legit",
+        fromName: "Riverside Clinic",
+        fromNameFlag: null,
+        fromAddr: "appointments@riversideclinic.example.com",
+        fromAddrFlag: null,
+        subject: "Appointment reminder for tomorrow at 10:30 a.m.",
+        subjectFlag: null,
+        context: "This clinic is already on your appointment card",
+        body: [
+          { text: "This is a reminder that you have an appointment tomorrow at 10:30 a.m." },
+          { text: " To change it, call the office number printed on your appointment card: (555) 010-1180." }
+        ],
+        tip: "Legit: a reminder from the clinic’s usual address, pointing you to a phone number you already have, with nothing to pay or type in."
+      },
+      {
+        id: "dental-confirm",
+        answer: "legit",
+        fromName: "Bright Side Dental",
+        fromNameFlag: null,
+        fromAddr: "front@brightsidedental.example.com",
+        fromAddrFlag: null,
+        subject: "Your cleaning is set for Monday at 9:00",
+        subjectFlag: null,
+        context: "This is the office that already has you on the schedule",
+        body: [
+          { text: "Your cleaning is all set for Monday at 9:00. We have your usual chair." },
+          { text: " See you then. If you need to reschedule, call (555) 010-3177." }
+        ],
+        tip: "Legit: a routine cleaning reminder from the office you already visit, with no new form and no surprise fee."
+      },
+      {
+        id: "utility-flush",
+        answer: "legit",
+        fromName: "Maple Grove Utilities",
+        fromNameFlag: null,
+        fromAddr: "service@maplegroveutilities.example.com",
+        fromAddrFlag: null,
+        subject: "Hydrant flushing on Maple Ave Wednesday",
+        subjectFlag: null,
+        context: "A service notice, not a bill",
+        body: [
+          { text: "We will flush hydrants on Maple Ave Wednesday from 9 a.m. to noon." },
+          { text: " You may see brief cloudy water. No action is needed, and this is not a bill." }
+        ],
+        tip: "Legit: a public-works notice that asks for no payment, no login, and no reply."
+      },
+      {
+        id: "school-delay",
+        answer: "legit",
+        fromName: "Northfield Elementary",
+        fromNameFlag: null,
+        fromAddr: "office@northfield-elementary.example.com",
+        fromAddrFlag: null,
+        subject: "Two-hour delay tomorrow because of ice",
+        subjectFlag: null,
+        context: "This is the school address from the handbook you already have",
+        body: [
+          { text: "School will start two hours late tomorrow because of ice." },
+          { text: " Buses will run on the late schedule. Stay warm, and we will see you later in the morning." }
+        ],
+        tip: "Legit: a delay notice from the school’s usual address, with no link and nothing to pay."
+      },
+      {
+        id: "bank-code",
+        answer: "legit",
+        fromName: "Pinecrest Community Bank",
+        fromNameFlag: null,
+        fromAddr: "codes@pinecrestbank.example.com",
+        fromAddrFlag: null,
+        subject: "Your one-time code, as you requested",
+        subjectFlag: null,
+        context: "You just tapped “Send code” in the bank’s official app",
+        body: [
+          { text: "Your one-time code is 482915. Do not share it with anyone." },
+          { text: " We will never ask you to read it back or type it on a page sent by email." }
+        ],
+        tip: "Legit: you just asked for this code, and the email is not asking you to send it back, pay a fee, or tap a new link."
+      },
+      {
+        id: "pharmacy-ready",
+        answer: "legit",
+        fromName: "Lakeview Pharmacy",
+        fromNameFlag: null,
+        fromAddr: "pickup@lakeviewpharmacy.example.com",
+        fromAddrFlag: null,
+        subject: "Your prescription is ready for pickup",
+        subjectFlag: null,
+        context: "This is the pharmacy you already use",
+        body: [
+          { text: "Your prescription is ready at the front counter until 7 p.m." },
+          { text: " Please bring your ID to the window. There is no link to tap and no payment to send by email." }
+        ],
+        tip: "Legit: a pickup notice from your usual pharmacy, asking you to come in — not to tap a link or pay from the message."
+      },
+      {
+        id: "fitness-class",
+        answer: "legit",
+        fromName: "Summit Fitness",
+        fromNameFlag: null,
+        fromAddr: "classes@summitfitness.example.com",
+        fromAddrFlag: null,
+        subject: "Friendly reminder: evening class is in Studio B tonight",
+        subjectFlag: null,
+        context: "You already signed up for this class",
+        body: [
+          { text: "Just a reminder that your 6:30 class is in Studio B tonight. Bring a water bottle." },
+          { text: " You are already registered, so there is nothing to pay tonight. See you there." }
+        ],
+        tip: "Legit: a class reminder for something you already signed up for, from the gym’s usual address, with no payment link."
+      },
+      {
+        id: "hoa-meeting",
+        answer: "legit",
+        fromName: "Cedar Park HOA",
+        fromNameFlag: null,
+        fromAddr: "board@cedarparkhoa.example.com",
+        fromAddrFlag: null,
+        subject: "Monthly meeting Thursday at 7 p.m. in the clubhouse",
+        subjectFlag: null,
+        context: "You live in this neighborhood and already get these notices",
+        body: [
+          { text: "The monthly meeting is Thursday at 7 p.m. in the clubhouse. The agenda is posted on the lobby board." },
+          { text: " No payment is due, and no reply is required. Coffee will be out at 6:45." }
+        ],
+        tip: "Legit: a meeting notice from the association’s usual address. It does not ask for money, a login, or a tap on a new page."
+      },
+      {
+        id: "insurance-mail",
+        answer: "legit",
+        fromName: "Brookside Insurance",
+        fromNameFlag: null,
+        fromAddr: "service@brooksideinsurance.example.com",
+        fromAddrFlag: null,
+        subject: "Your renewal packet is in the mail",
+        subjectFlag: null,
+        context: "You already have a policy with this office",
+        body: [
+          { text: "Your renewal packet was mailed this week. Please look for a white envelope from our office." },
+          { text: " If you have questions, call the number on your existing card: (555) 010-7744. We will not ask you to pay from this email." }
+        ],
+        tip: "Legit: a heads-up that paper mail is on the way, from the office you already use, with a number you already have."
+      },
+      {
+        id: "vet-reminder",
+        answer: "legit",
+        fromName: "Willow Path Veterinary",
+        fromNameFlag: null,
+        fromAddr: "front@willowpathvet.example.com",
+        fromAddrFlag: null,
+        subject: "Annual checkup reminder for Friday at 2:00",
+        subjectFlag: null,
+        context: "This is the clinic printed on your last visit summary",
+        body: [
+          { text: "Friendly reminder: the annual checkup is Friday at 2:00. Please bring your usual leash." },
+          { text: " To reschedule, call (555) 010-8088, the number on your visit summary." }
+        ],
+        tip: "Legit: a checkup reminder from the clinic’s usual address, pointing you back to info you already have."
+      },
+      {
+        id: "transit-snow",
+        answer: "legit",
+        fromName: "Northline Transit",
+        fromNameFlag: null,
+        fromAddr: "alerts@northlinetransit.example.com",
+        fromAddrFlag: null,
+        subject: "Snow schedule starts at 6 a.m. tomorrow",
+        subjectFlag: null,
+        context: "You already subscribe to these route alerts",
+        body: [
+          { text: "Because of snow, buses will run on the snow schedule starting at 6 a.m. tomorrow." },
+          { text: " Paper copies are in the terminal, and the same times are posted at northlinetransit.example.com. No fare change." }
+        ],
+        tip: "Legit: a schedule change from the transit address you already get alerts from. The site name matches, and no one is asking you to pay or log in."
+      },
+      {
+        id: "college-room",
+        answer: "legit",
+        fromName: "Open Gate Community College",
+        fromNameFlag: null,
+        fromAddr: "orientation@opengatecollege.example.com",
+        fromAddrFlag: null,
+        subject: "Orientation room change: now in Hall C",
+        subjectFlag: null,
+        context: "You already registered for this orientation",
+        body: [
+          { text: "Quick update: Saturday’s orientation has moved to Hall C so we can fit everyone." },
+          { text: " Check in starts at 8:30 a.m. You are already on the list, and there is no extra fee." }
+        ],
+        tip: "Legit: a room-change note for an event you already registered for, from the college’s usual address, with no payment or login."
+      },
+      {
+        id: "market-pickup",
+        answer: "legit",
+        fromName: "Fairhaven Market",
+        fromNameFlag: null,
+        fromAddr: "orders@fairhavenmarket.example.com",
+        fromAddrFlag: null,
+        subject: "Your grocery pickup is ready at stall 3",
+        subjectFlag: null,
+        context: "You placed this pickup order earlier today",
+        body: [
+          { text: "Your grocery pickup order is ready at stall 3. Please come by before 7 p.m. and bring the order name." },
+          { text: " Payment was already taken when you placed the order, so you do not need to pay again." }
+        ],
+        tip: "Legit: a pickup notice for an order you already placed, from the market’s usual address, with no new payment link."
+      },
+      {
+        id: "harbor-lock",
+        answer: "phish",
+        fromName: "Harbor Credit Union",
+        fromNameFlag: null,
+        fromAddr: "secure@haborcu-login.example.com",
+        fromAddrFlag: "sender",
+        subject: "Urgent: we will lock your account tonight",
+        subjectFlag: "urgency",
+        context: "You have an account at Harbor Credit Union, but this address looks off",
+        body: [
+          { text: "We noticed a login we did not recognize." },
+          { text: " Confirm your password immediately or your account will be locked at midnight.", flag: "payment" },
+          { text: " Use this page: " },
+          { text: "haborcu-login.example.com/verify", flag: "link" }
+        ],
+        tip: "Phish: the sender is a look-alike (haborcu, not harborcu), the tone is a threat, and it asks for your password on an odd page. A real credit union will not ask you to type your password from an email."
+      },
+      {
+        id: "prize-fee",
+        answer: "phish",
+        fromName: "Prize Desk",
+        fromNameFlag: null,
+        fromAddr: "winner@claim-prize.example.com",
+        fromAddrFlag: "sender",
+        subject: "You won $2,000 — pay $39 to claim it today",
+        subjectFlag: "payment",
+        context: "You did not enter a contest",
+        body: [
+          { text: "Congratulations! You have been selected for a $2,000 prize." },
+          { text: " Pay a $39 shipping fee today or you will lose it.", flag: "urgency" },
+          { text: " Claim it here: " },
+          { text: "claim-prize.example.com/win", flag: "link" }
+        ],
+        tip: "Phish: a prize you did not enter, a fee you must pay first, and a rushed deadline are classic tells. Real prizes do not make you pay to collect them."
+      },
+      {
+        id: "fake-it",
+        answer: "phish",
+        fromName: "Westbridge University IT",
+        fromNameFlag: "branding",
+        fromAddr: "helpdesk@secure-reset.example.net",
+        fromAddrFlag: "sender",
+        subject: "Your campus password expires in one hour",
+        subjectFlag: "urgency",
+        context: "You take a class at Westbridge University, but this is not the school’s usual address",
+        body: [
+          { text: "Campus IT here. Your password will expire in one hour." },
+          { text: " Reply with your current password so we can keep your email open.", flag: "payment" },
+          { text: " Do not call the main desk — handle this only by email." }
+        ],
+        tip: "Phish: the name says Westbridge, but the address is a generic reset domain. Real IT staff will not ask you to email your password, and they will not tell you to avoid the official desk."
+      },
+      {
+        id: "parcel-fee",
+        answer: "phish",
+        fromName: "Amberline Parcel",
+        fromNameFlag: "branding",
+        fromAddr: "delivery@amberline-fees.example.org",
+        fromAddrFlag: "sender",
+        subject: "Held package — $2.99 to release it today",
+        subjectFlag: "payment",
+        context: "You are not waiting on a package from this company",
+        body: [
+          { text: "Your package is being held at a local depot because of an unpaid fee." },
+          { text: " Pay $2.99 in the next two hours or it will be returned.", flag: "urgency" },
+          { text: " Pay here: " },
+          { text: "amberline-fees.example.org/pay", flag: "link" }
+        ],
+        tip: "Phish: a surprise held package, a tiny fee, and a short deadline, all from an address that does not match a company you use. Confirm deliveries in an app or phone number you already have."
+      },
+      {
+        id: "gift-boss",
+        answer: "phish",
+        fromName: "Your Manager",
+        fromNameFlag: "branding",
+        fromAddr: "need-help@quickmail.example.net",
+        fromAddrFlag: "sender",
+        subject: "Need gift cards in the next 20 minutes. Do not call.",
+        subjectFlag: "urgency",
+        context: "This address is not your manager’s usual email",
+        body: [
+          { text: "I’m stuck in a meeting and need you to buy $250 in gift cards for a client gift." },
+          { text: " Send the codes to this email right now, and do not tell anyone.", flag: "payment" }
+        ],
+        tip: "Phish: a “manager” on a new address who wants gift-card codes and secrecy is a classic trick. A real boss will not ask you to buy cards and hide it."
+      },
+      {
+        id: "tax-refund",
+        answer: "phish",
+        fromName: "City Tax Desk",
+        fromNameFlag: "branding",
+        fromAddr: "refunds@city-tax-help.example.net",
+        fromAddrFlag: "sender",
+        subject: "You have a $640 refund waiting — confirm today",
+        subjectFlag: "urgency",
+        context: "You were not expecting a city tax refund message",
+        body: [
+          { text: "Our records show a $640 refund is ready to be sent." },
+          { text: " Enter your bank routing number and a copy of your ID on this page to receive it:", flag: "payment" },
+          { text: " " },
+          { text: "city-tax-help.example.net/refund", flag: "link" }
+        ],
+        tip: "Phish: an unexpected refund that asks for your bank number and ID on an odd page is a trap. Tax offices do not collect that information from a cold email."
+      },
+      {
+        id: "utility-shutoff",
+        answer: "phish",
+        fromName: "Riverbend Power",
+        fromNameFlag: "branding",
+        fromAddr: "billing@riverbend-paynow.example.org",
+        fromAddrFlag: "sender",
+        subject: "Final notice: power shutoff at 5 p.m. today",
+        subjectFlag: "urgency",
+        context: "You get paper bills from Riverbend Power, and this is not the address on them",
+        body: [
+          { text: "Your service will be shut off at 5 p.m. today unless payment is made immediately." },
+          { text: " Pay the past-due amount on this page to keep your lights on:", flag: "payment" },
+          { text: " " },
+          { text: "riverbend-paynow.example.org/due", flag: "link" }
+        ],
+        tip: "Phish: a same-day shutoff threat and a pay-now page from an address that is not on your bill. Call the number printed on a bill you already have before you pay anything."
+      },
+      {
+        id: "mailbox-full",
+        answer: "phish",
+        fromName: "Mailbox Admin",
+        fromNameFlag: null,
+        fromAddr: "admin@box-restore.example.net",
+        fromAddrFlag: "sender",
+        subject: "Your mailbox is full — confirm your password now",
+        subjectFlag: "payment",
+        context: "You did not request a mailbox review",
+        body: [
+          { text: "Your inbox is over its limit and will be deleted tonight." },
+          { text: " Confirm your email password on this page to keep your mail:", flag: "urgency" },
+          { text: " " },
+          { text: "box-restore.example.net/keep", flag: "link" }
+        ],
+        tip: "Phish: a “mailbox full” warning that asks for your password on a strange page is a common trick. Sign in only through the mail site or app you already use."
+      },
+      {
+        id: "job-fee",
+        answer: "phish",
+        fromName: "Bright Path Staffing",
+        fromNameFlag: null,
+        fromAddr: "hiring@brightpath-jobs.example.com",
+        fromAddrFlag: "sender",
+        subject: "You are hired — send $75 for your starter kit today",
+        subjectFlag: "payment",
+        context: "You did not apply for this job",
+        body: [
+          { text: "Great news: you have been selected for a work-from-home role at $42 an hour." },
+          { text: " To receive your starter kit, send a $75 equipment fee today or the offer will be given to someone else.", flag: "urgency" },
+          { text: " Pay here: " },
+          { text: "brightpath-jobs.example.com/kit", flag: "link" }
+        ],
+        tip: "Phish: a job you did not apply for that asks you to pay a fee first is a warning sign. Real hiring teams do not charge you to start work."
+      },
+      {
+        id: "charity-cards",
+        answer: "phish",
+        fromName: "Valley Relief Fund",
+        fromNameFlag: null,
+        fromAddr: "donate@valley-relief-now.example.com",
+        fromAddrFlag: "sender",
+        subject: "Flood help needed in the next hour — gift cards only",
+        subjectFlag: "urgency",
+        context: "You have not heard of this fund before",
+        body: [
+          { text: "Families need help after the flood, and we can only accept gift-card codes right now." },
+          { text: " Buy $200 in cards and email the codes to this address immediately. Do not use our phone line.", flag: "payment" }
+        ],
+        tip: "Phish: even after a real disaster, a group you have never heard of that wants gift-card codes and no phone calls is a red flag. Give only through a group you already know."
+      },
+      {
+        id: "hoa-wire",
+        answer: "phish",
+        fromName: "Cedar Park HOA",
+        fromNameFlag: "branding",
+        fromAddr: "treasurer@cedarpark-repair.example.org",
+        fromAddrFlag: "sender",
+        subject: "Emergency roof repair — wire funds this morning",
+        subjectFlag: "payment",
+        context: "The real association address you already use is board@cedarparkhoa.example.com",
+        body: [
+          { text: "The clubhouse roof failed last night. We need each household to wire $400 this morning." },
+          { text: " Do not mention this to neighbors, and do not call the board. Wire the funds using the steps here:", flag: "urgency" },
+          { text: " " },
+          { text: "cedarpark-repair.example.org/wire", flag: "link" }
+        ],
+        tip: "Phish: the name matches your HOA, but the address does not, and it asks you to wire money in secret. A real board will not forbid you from calling to check."
+      },
+      {
+        id: "school-pay",
+        answer: "phish",
+        fromName: "Northfield Elementary",
+        fromNameFlag: "branding",
+        fromAddr: "principal@school-help.example.org",
+        fromAddrFlag: "sender",
+        subject: "Your child needs a payment in the next 15 minutes",
+        subjectFlag: "urgency",
+        context: "This is not the school address from the handbook",
+        body: [
+          { text: "This is the principal. Your child cannot come home until a $180 field-trip balance is paid." },
+          { text: " Send payment on this page now and do not call the office, because the line is busy.", flag: "payment" },
+          { text: " " },
+          { text: "school-help.example.org/pay", flag: "link" }
+        ],
+        tip: "Phish: a school name with a mismatched address, a tight deadline, and a request not to call the office. If a school needs you, use the number in the handbook you already have."
+      },
+      {
+        id: "invoice-mismatch",
+        answer: "phish",
+        fromName: "Fairhaven Market",
+        fromNameFlag: "branding",
+        fromAddr: "billing@fairhaven-pay.example.org",
+        fromAddrFlag: "sender",
+        subject: "Invoice overdue — pay today to avoid collections",
+        subjectFlag: "urgency",
+        context: "You shop there, but this is not the market’s usual address",
+        body: [
+          { text: "Our records show an unpaid invoice of $318.40." },
+          { text: " Pay in full today to avoid collections. Use this page:", flag: "payment" },
+          { text: " " },
+          { text: "fairhaven-pay.example.org/invoice", flag: "link" }
+        ],
+        tip: "Phish: the name says Fairhaven Market, but the address and pay page do not match the store you know, and the tone is a threat. Confirm any bill in person or through the account you already use."
+      },
+      {
+        id: "subscription-cancel",
+        answer: "phish",
+        fromName: "Summit Fitness Billing",
+        fromNameFlag: "branding",
+        fromAddr: "renew@summit-keep.example.net",
+        fromAddrFlag: "sender",
+        subject: "You will be billed $299 today unless you confirm your password",
+        subjectFlag: "payment",
+        context: "This is not the gym address you already use for class notes",
+        body: [
+          { text: "Your plan will renew at $299 today." },
+          { text: " To cancel or keep your rate, confirm your account password on this page in the next 30 minutes:", flag: "urgency" },
+          { text: " " },
+          { text: "summit-keep.example.net/cancel", flag: "link" }
+        ],
+        tip: "Phish: a sudden $299 charge and a password request on a look-alike cancel page. Manage a membership in the gym app or front desk you already use, not from a surprise email."
+      }
+    ];
+
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenEnd = document.getElementById("screen-end");
+    var btnPlay = document.getElementById("btn-play");
+    var btnAgain = document.getElementById("btn-again");
+    var btnLegit = document.getElementById("btn-legit");
+    var btnPhish = document.getElementById("btn-phish");
+    var choicesEl = document.getElementById("choices");
+    var startBest = document.getElementById("start-best");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudTime = document.getElementById("hud-time");
+    var hudStreak = document.getElementById("hud-streak");
+    var timerEl = document.getElementById("timer");
+    var timerFill = document.getElementById("timer-fill");
+    var flagCountEl = document.getElementById("flag-count");
+    var mailCard = document.getElementById("mail-card");
+    var msgContext = document.getElementById("msg-context");
+    var msgFromName = document.getElementById("msg-from-name");
+    var msgFromAddr = document.getElementById("msg-from-addr");
+    var msgSubject = document.getElementById("msg-subject");
+    var msgBody = document.getElementById("msg-body");
+    var feedbackEl = document.getElementById("feedback");
+    var feedbackAnswer = document.getElementById("feedback-answer");
+    var feedbackVerdict = document.getElementById("feedback-verdict");
+    var feedbackFlags = document.getElementById("feedback-flags");
+    var feedbackTip = document.getElementById("feedback-tip");
+
+    var deck = [];
+    var index = 0;
+    var score = 0;
+    var streak = 0;
+    var correctCount = 0;
+    var answeredCount = 0;
+    var flagsFoundTotal = 0;
+    var flagsPossibleTotal = 0;
+    var misses = [];
+    var locked = false;
+    var timerId = null;
+    var timeLeft = 0;
+    var timeLimit = START_SECONDS;
+    var lastTick = 0;
+    var audioCtx = null;
+
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundCorrect() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+    function soundWrong() { beep(180, 0.28, "sawtooth", 0.05); }
+    function soundTimeout() { beep(320, 0.35, "triangle", 0.05); }
+
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+
+    function dealRound() {
+      var phish = shuffle(EMAILS.filter(function (m) { return m.answer === "phish"; }));
+      var legit = shuffle(EMAILS.filter(function (m) { return m.answer === "legit"; }));
+      var per = Math.floor(ROUND_SIZE / 2);
+      return shuffle(phish.slice(0, per).concat(legit.slice(0, per)));
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+
+    function answerLabel(value) {
+      if (value === "phish") return "Phish";
+      if (value === "legit") return "Legit";
+      return value;
+    }
+
+    function flagTotal(msg) {
+      var n = 0;
+      if (msg.fromNameFlag) n += 1;
+      if (msg.fromAddrFlag) n += 1;
+      if (msg.subjectFlag) n += 1;
+      msg.body.forEach(function (part) { if (part.flag) n += 1; });
+      return n;
+    }
+
+    function markHtml(text, flagType, markId) {
+      var attr = ' class="mark" data-mark="' + markId + '" tabindex="0" role="button"';
+      if (flagType) attr += ' data-flag="' + flagType + '"';
+      return "<span" + attr + ">" + escapeHtml(text) + "</span>";
+    }
+
+    function countPicked() {
+      return mailCard.querySelectorAll(".mark.picked").length;
+    }
+
+    function updateFlagCount() {
+      var n = countPicked();
+      flagCountEl.textContent = "Clues marked: " + n;
+      document.body.setAttribute("data-picked", String(n));
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (index + 1) + " / " + ROUND_SIZE;
+      hudStreak.textContent = streak >= 2 ? "Streak ×" + streak + "  •  bonus points!" : "";
+    }
+
+    function renderEmail(msg) {
+      msgContext.innerHTML = "<strong>Heads-up:</strong> " + escapeHtml(msg.context);
+      msgFromName.innerHTML = markHtml(msg.fromName, msg.fromNameFlag, "from-name");
+      msgFromAddr.innerHTML = markHtml(msg.fromAddr, msg.fromAddrFlag, "from-addr");
+      msgSubject.innerHTML = markHtml(msg.subject, msg.subjectFlag, "subject");
+      var html = "";
+      msg.body.forEach(function (part, i) {
+        html += markHtml(part.text, part.flag || null, "body-" + i);
+      });
+      msgBody.innerHTML = html;
+      mailCard.classList.remove("is-feedback");
+      updateFlagCount();
+
+      document.body.setAttribute("data-correct", msg.answer);
+      document.body.setAttribute("data-msg-id", msg.id);
+      document.body.setAttribute("data-flags-total", String(flagTotal(msg)));
+      document.body.setAttribute("data-phase", "playing");
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        cancelAnimationFrame(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      timeLimit = Math.max(MIN_SECONDS, START_SECONDS - index * TIME_STEP);
+      timeLeft = timeLimit;
+      lastTick = performance.now();
+      timerEl.classList.remove("warn", "danger");
+      timerFill.style.transform = "scaleX(1)";
+      hudTime.textContent = String(Math.ceil(timeLeft));
+
+      function tick(now) {
+        var dt = (now - lastTick) / 1000;
+        lastTick = now;
+        timeLeft -= dt;
+        var pct = Math.max(0, timeLeft / timeLimit);
+        timerFill.style.transform = "scaleX(" + pct + ")";
+        timerEl.classList.toggle("warn", pct < 0.4 && pct >= 0.2);
+        timerEl.classList.toggle("danger", pct < 0.2);
+        hudTime.textContent = String(Math.max(0, Math.ceil(timeLeft)));
+        if (timeLeft <= 0) {
+          timerId = null;
+          settleAnswer(null, true);
+          return;
+        }
+        timerId = requestAnimationFrame(tick);
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    function setChoicesEnabled(on) {
+      btnLegit.disabled = !on;
+      btnPhish.disabled = !on;
+    }
+
+    function showMessage() {
+      locked = false;
+      setChoicesEnabled(true);
+      choicesEl.classList.remove("hidden");
+      feedbackEl.classList.remove("show", "ok", "bad");
+      renderEmail(deck[index]);
+      updateHud();
+      startTimer();
+    }
+
+    function readPicks(msg) {
+      var found = [];
+      var missed = [];
+      var wrong = [];
+      mailCard.querySelectorAll(".mark").forEach(function (el) {
+        var flag = el.getAttribute("data-flag");
+        var picked = el.classList.contains("picked");
+        if (flag) {
+          el.classList.add("was-flag");
+          if (picked) found.push(flag);
+          else missed.push(flag);
+        } else if (picked) {
+          wrong.push(el.getAttribute("data-mark") || "mark");
+        }
+      });
+      return { found: found, missed: missed, wrong: wrong, total: flagTotal(msg) };
+    }
+
+    function describeFlags(picks, timedOut) {
+      var parts = [];
+      if (picks.total === 0) {
+        if (picks.wrong.length === 0) {
+          parts.push("No clues to mark — this one was legit.");
+        } else {
+          parts.push("You marked " + picks.wrong.length + " line" + (picks.wrong.length === 1 ? "" : "s") + ", but nothing here was a trap.");
+        }
+      } else {
+        parts.push("Clues: you found " + picks.found.length + " of " + picks.total + ".");
+        if (picks.found.length) {
+          parts.push("Caught: " + picks.found.map(function (f) { return FLAG_LABELS[f] || f; }).join("; ") + ".");
+        }
+        if (picks.missed.length && !timedOut) {
+          parts.push("Missed: " + picks.missed.map(function (f) { return FLAG_LABELS[f] || f; }).join("; ") + ".");
+        }
+        if (picks.wrong.length) {
+          parts.push("You also marked " + picks.wrong.length + " ordinary line" + (picks.wrong.length === 1 ? "" : "s") + ".");
+        }
+      }
+      return parts.join(" ");
+    }
+
+    function settleAnswer(guess, timedOut) {
+      if (locked) return;
+      locked = true;
+      stopTimer();
+      setChoicesEnabled(false);
+
+      var msg = deck[index];
+      var picks = readPicks(msg);
+      var verdictOk = !timedOut && guess === msg.answer;
+      answeredCount += 1;
+      flagsFoundTotal += picks.found.length;
+      flagsPossibleTotal += picks.total;
+
+      var flagScore = picks.found.length * FLAG_POINTS;
+      var gained = 0;
+      var speedPts = 0;
+      var streakPts = 0;
+      var verdictPts = 0;
+      var verdict;
+
+      if (timedOut) {
+        streak = 0;
+        soundTimeout();
+        verdict = "Time’s up";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "Correct answer: " + answerLabel(msg.answer);
+        misses.push({
+          from: msg.fromName,
+          guessed: "Timed out",
+          correct: answerLabel(msg.answer),
+          tip: msg.tip
+        });
+      } else if (verdictOk) {
+        streak += 1;
+        correctCount += 1;
+        speedPts = Math.round(SPEED_MAX * Math.max(0, timeLeft) / timeLimit);
+        streakPts = (streak - 1) * STREAK_BONUS;
+        verdictPts = VERDICT_POINTS;
+        gained = verdictPts + speedPts + streakPts + flagScore;
+        score += gained;
+        soundCorrect();
+        verdict = "Correct  +" + gained;
+        feedbackEl.classList.add("ok");
+        feedbackAnswer.textContent = answerLabel(msg.answer);
+      } else {
+        streak = 0;
+        gained = flagScore;
+        score += gained;
+        soundWrong();
+        verdict = gained > 0 ? "Missed the verdict  +" + gained : "Missed it";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "You said " + answerLabel(guess) + " · it was " + answerLabel(msg.answer);
+        misses.push({
+          from: msg.fromName,
+          guessed: answerLabel(guess),
+          correct: answerLabel(msg.answer),
+          tip: msg.tip
+        });
+      }
+
+      mailCard.classList.add("is-feedback");
+      feedbackFlags.textContent = describeFlags(picks, timedOut);
+      feedbackVerdict.textContent = verdict;
+      feedbackTip.textContent = msg.tip;
+      feedbackEl.classList.add("show");
+      choicesEl.classList.add("hidden");
+      updateHud();
+
+      document.body.setAttribute("data-phase", "feedback");
+      document.body.setAttribute("data-last-result", verdictOk ? "correct" : (timedOut ? "timeout" : "wrong"));
+      document.body.setAttribute("data-last-gained", String(gained));
+      document.body.setAttribute("data-last-flag-points", String((timedOut ? 0 : flagScore)));
+      document.body.setAttribute("data-last-verdict-points", String(verdictPts));
+      document.body.setAttribute("data-last-speed-points", String(speedPts));
+      document.body.setAttribute("data-flags-found", String(picks.found.length));
+      document.body.setAttribute("data-flags-total", String(picks.total));
+      document.body.setAttribute("data-wrong-flags", String(picks.wrong.length));
+      document.body.setAttribute("data-missed-flags", String(picks.missed.length));
+      document.body.setAttribute("data-score", String(score));
+      document.body.setAttribute("data-streak", String(streak));
+
+      setTimeout(advance, FEEDBACK_MS);
+    }
+
+    function advance() {
+      if (index >= ROUND_SIZE - 1) {
+        endGame();
+        return;
+      }
+      index += 1;
+      showMessage();
+    }
+
+    function rankTitle(correct) {
+      if (correct === ROUND_SIZE) return "Inbox Inspector";
+      if (correct >= 11) return "Sharp Eye";
+      if (correct >= 9) return "On the Watch";
+      if (correct >= 6) return "Getting There";
+      return "Keep Practicing";
+    }
+
+    function startGame() {
+      unlockAudio();
+      deck = dealRound();
+      index = 0;
+      score = 0;
+      streak = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      flagsFoundTotal = 0;
+      flagsPossibleTotal = 0;
+      misses = [];
+      document.body.setAttribute("data-score", "0");
+      document.body.setAttribute("data-streak", "0");
+      showScreen("play");
+      showMessage();
+    }
+
+    function endGame() {
+      stopTimer();
+      document.body.removeAttribute("data-correct");
+      document.body.setAttribute("data-phase", "end");
+      document.body.setAttribute("data-score", String(score));
+
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(best);
+
+      document.getElementById("end-rank").textContent = rankTitle(correctCount);
+      document.getElementById("end-title").textContent = "Round complete · " + correctCount + " of " + answeredCount + " correct verdicts";
+      document.getElementById("end-score").textContent = score;
+      document.getElementById("end-accuracy").textContent = correctCount + "/" + answeredCount;
+      document.getElementById("end-flags").textContent = flagsFoundTotal + "/" + flagsPossibleTotal;
+      document.getElementById("end-best").textContent = best;
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      var recapTitle = document.getElementById("end-recap-title");
+      var box = document.getElementById("end-misses");
+      if (misses.length === 0) {
+        recapTitle.textContent = "Nice work";
+        box.innerHTML = '<p class="all-clear">You judged every email correctly. Keep opening messages with a careful eye, and use official apps and numbers you already have when an email asks you to act.</p>';
+      } else {
+        recapTitle.textContent = "Emails you missed";
+        box.innerHTML = misses.map(function (m) {
+          return '<div class="miss"><div class="miss-head">' +
+            escapeHtml(m.from) + " · You: " + escapeHtml(m.guessed) +
+            " · Answer: " + escapeHtml(m.correct) +
+            "</div><div class=\"miss-tip\">" + escapeHtml(m.tip) + "</div></div>";
+        }).join("");
+      }
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    function toggleMark(mark) {
+      if (locked || !mark) return;
+      mark.classList.toggle("picked");
+      updateFlagCount();
+    }
+
+    mailCard.addEventListener("click", function (event) {
+      var mark = event.target.closest(".mark");
+      if (!mark) return;
+      event.preventDefault();
+      toggleMark(mark);
+    });
+
+    mailCard.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      var mark = event.target.closest(".mark");
+      if (!mark) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMark(mark);
+    });
+
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnLegit.addEventListener("click", function () { settleAnswer("legit", false); });
+    btnPhish.addEventListener("click", function () { settleAnswer("phish", false); });
+
+    document.addEventListener("keydown", function (event) {
+      var key = event.key;
+      if (key === "Enter") {
+        if (event.target && event.target.closest && event.target.closest(".mark")) return;
+        if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+          startGame();
+        }
+        return;
+      }
+      if (screenPlay.classList.contains("hidden") || locked) return;
+      if (key === "ArrowLeft" || key === "l" || key === "L") {
+        event.preventDefault();
+        settleAnswer("legit", false);
+      } else if (key === "ArrowRight" || key === "p" || key === "P") {
+        event.preventDefault();
+        settleAnswer("phish", false);
+      }
+    });
+
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+  </script>
+</body>
+</html>

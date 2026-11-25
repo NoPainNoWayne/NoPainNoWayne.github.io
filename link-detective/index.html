@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Link Detective</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as the other NoPainNoWayne games) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(26px, 7.4vw, 38px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    /* ===== Play HUD ===== */
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud strong { color: var(--gold); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    .streak {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-height: 1.2em;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      border-radius: 999px;
+      transform-origin: left center;
+    }
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    /* ===== Fake browser card (addresses are text only, never links) ===== */
+    .browser {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 22px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #1a2a40;
+    }
+
+    .chrome {
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      color: var(--cream);
+      padding: 8px 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .chrome-dots { display: flex; gap: 6px; flex: 0 0 auto; }
+    .chrome-dots span {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.85;
+    }
+    .chrome-dots span:nth-child(2) { opacity: 0.6; }
+    .chrome-dots span:nth-child(3) { opacity: 0.4; }
+    .chrome-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+    }
+
+    .claim-block {
+      background: #F3EBDA;
+      color: #3A4A5A;
+      padding: 10px 14px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+    .claim-label,
+    .address-label,
+    .feedback-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .claim-text {
+      font-size: clamp(17px, 4.6vw, 20px);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .address-block {
+      padding: 12px 14px 16px;
+      min-height: 148px;
+      background: linear-gradient(180deg, #FFFBF3, #F7F0E0);
+    }
+
+    .address-bar {
+      margin-top: 6px;
+      background: #fff;
+      border: 2px solid var(--navy-light);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .link-url {
+      display: block;
+      font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+      font-size: 14.5px;
+      line-height: 1.45;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .address-hint {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .pane { position: relative; overflow: hidden; isolation: isolate; }
+    .pane.is-feedback { background: #F6F1E3; }
+    .pane.is-feedback .claim-block,
+    .pane.is-feedback .address-block { visibility: hidden; }
+
+    .feedback {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 14px 16px 22px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #F6F1E3;
+      transform: translateY(100%);
+      transition: transform 0.22s ease;
+    }
+    .feedback.show { transform: translateY(0); }
+    body.fast .feedback { transition: none; }
+    .feedback .verdict {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .feedback.ok .verdict { color: var(--real); }
+    .feedback.bad .verdict { color: var(--scam); }
+    .feedback .tip {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .feedback .answer-line {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .feedback-url {
+      margin: 0 0 10px;
+      background: #fff;
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    mark.tell {
+      background: #F3E2A0;
+      color: #102033;
+      font-weight: 800;
+      padding: 0 2px;
+      border-radius: 3px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .swipe-hint {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--gold-soft);
+      opacity: 0.8;
+      margin: 8px 0 2px;
+      line-height: 1.35;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-choice {
+      font-size: clamp(16px, 4vw, 19px);
+      font-weight: 800;
+      padding: 14px 8px 12px;
+      border-radius: 14px;
+      color: #fff;
+      letter-spacing: 0.01em;
+      min-height: 62px;
+      line-height: 1.15;
+    }
+    .btn-choice small {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+      margin-top: 3px;
+    }
+    .btn-safe { background: var(--real); box-shadow: 0 4px 0 var(--real-deep); }
+    .btn-fake { background: var(--scam); box-shadow: 0 4px 0 var(--scam-deep); }
+    .btn-choice:hover { filter: brightness(1.06); }
+    .btn-choice:active { transform: translateY(2px); box-shadow: 0 2px 0 currentColor; }
+    .btn-choice:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ===== End screen ===== */
+    .score-block { text-align: center; margin: 6px 0 14px; }
+    .end-rank {
+      text-align: center;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .end-title {
+      text-align: center;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+    }
+    .stats strong { color: var(--gold); }
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      max-height: 260px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .miss {
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .miss:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .miss-head { font-weight: 700; color: var(--gold-soft); margin-bottom: 2px; overflow-wrap: anywhere; word-break: break-word; }
+    .miss-url {
+      font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .miss-tip { color: var(--cream); overflow-wrap: anywhere; word-break: break-word; }
+    .all-clear { font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .address-block { min-height: 132px; padding: 10px 10px 14px; }
+      .claim-block { padding: 8px 10px; }
+      .btn-choice { padding: 12px 6px 10px; min-height: 58px; }
+      .choices { gap: 8px; }
+      .link-url { font-size: 13.5px; }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .address-block { min-height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <!-- ===== START SCREEN ===== -->
+      <section id="screen-start" class="panel">
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <rect x="14" y="16" width="26" height="16" rx="8" fill="none" stroke="#D4AF37" stroke-width="3.2"/>
+          <rect x="28" y="16" width="26" height="16" rx="8" fill="none" stroke="#D4AF37" stroke-width="3.2"/>
+          <circle cx="38" cy="50" r="16" fill="#132946" stroke="#D4AF37" stroke-width="3"/>
+          <circle cx="38" cy="50" r="8" fill="none" stroke="#F3E2A0" stroke-width="2.2"/>
+          <line x1="49" y1="62" x2="62" y2="76" stroke="#D4AF37" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
+        <h1>Link Detective</h1>
+        <p class="pitch">Can you spot a fake web address before it tricks you?</p>
+        <ul class="howto">
+          <li>12 web addresses appear, one at a time. A short timer is running.</li>
+          <li>Each one claims to be a familiar page, like a bank login. Tap <strong>Safe</strong> if the address truly matches, or <strong>Fake</strong> if a trick is hiding in it.</li>
+          <li>Watch for number-for-letter swaps, extra words, a real name used as a subdomain, wrong endings, http instead of https, short links, and the @ trick.</li>
+          <li>Faster answers and streaks score more. After each choice, a tip highlights the part that gives it away.</li>
+          <li>On a keyboard: <strong>A</strong> or ← Safe, <strong>D</strong> or → Fake. You can also swipe the address: left Safe, right Fake.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="fake-note">Every brand and web address in this game is made up for practice. None of these links can be opened.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <!-- ===== PLAY SCREEN ===== -->
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Link<br><strong id="hud-progress">1 / 12</strong></div>
+          <div style="text-align:right">Time<br><strong id="hud-time">12</strong></div>
+        </div>
+        <div class="streak" id="hud-streak"></div>
+        <div class="timer" id="timer"><div class="timer-fill" id="timer-fill"></div></div>
+
+        <article class="browser" id="link-card">
+          <div class="chrome">
+            <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="chrome-title">Address</div>
+          </div>
+          <div class="pane">
+            <div class="claim-block">
+              <div class="claim-label">It claims to be</div>
+              <div class="claim-text" id="link-claim"></div>
+            </div>
+            <div class="address-block">
+              <div class="address-label">Web address</div>
+              <div class="address-bar">
+                <span class="link-url" id="link-url"></span>
+              </div>
+              <p class="address-hint">This address is display-only practice text. It is not a real link and cannot be opened.</p>
+            </div>
+            <div class="feedback" id="feedback">
+              <div class="answer-line" id="feedback-answer"></div>
+              <div class="verdict" id="feedback-verdict"></div>
+              <div class="feedback-label">The tell</div>
+              <div class="feedback-url" id="feedback-url"></div>
+              <p class="tip" id="feedback-tip"></p>
+            </div>
+          </div>
+        </article>
+
+        <p class="swipe-hint">Or swipe the address: left Safe, right Fake</p>
+        <div class="choices">
+          <button type="button" class="btn-choice btn-safe" id="btn-safe">
+            Safe
+            <small>A or Left</small>
+          </button>
+          <button type="button" class="btn-choice btn-fake" id="btn-fake">
+            Fake
+            <small>D or Right</small>
+          </button>
+        </div>
+      </section>
+
+      <!-- ===== END SCREEN ===== -->
+      <section id="screen-end" class="panel hidden">
+        <p class="end-rank" id="end-rank">Ace Detective</p>
+        <p class="end-title" id="end-title">Round complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Correct<br><strong id="end-accuracy">0/12</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap" id="end-recap">
+          <h2 id="end-recap-title">Links you missed</h2>
+          <div id="end-misses"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Link Detective — a small teaching game about spotting
+       lookalike web addresses. Everything lives in this one file
+       so it can be pasted into a Google Sites embed (a sandboxed
+       iframe). Brands and addresses are fictional. Displayed
+       addresses are never real links.
+       ============================================================ */
+
+    var ROUND_SIZE = 12;
+    var START_SECONDS = 14;
+    var MIN_SECONDS = 10;
+    var TIME_STEP = 0.25;
+    var FAST = location.hash === "#fast";
+    var FEEDBACK_MS = FAST ? 800 : 2400;
+    if (FAST) document.body.classList.add("fast");
+    var BASE_POINTS = 100;
+    var SPEED_MAX = 50;
+    var STREAK_BONUS = 25;
+    var BEST_KEY = "npnw-link-detective-best";
+
+    var LINKS = [
+      {
+        id: "bank-login",
+        answer: "safe",
+        trick: "none",
+        claim: "Your Harbor Bank login",
+        url: "https://www.harborbank.example.com/login",
+        tell: "harborbank.example.com",
+        tip: "Safe: the address is exactly harborbank.example.com, it starts with https, and there are no extra words or odd spellings."
+      },
+      {
+        id: "mail-inbox",
+        answer: "safe",
+        trick: "none",
+        claim: "Your Nimbus Mail inbox",
+        url: "https://mail.nimbusmail.example.org/inbox",
+        tell: "mail.nimbusmail.example.org",
+        tip: "Safe: mail.nimbusmail.example.org is a normal subdomain of the real Nimbus Mail domain, and the page uses https."
+      },
+      {
+        id: "cu-account",
+        answer: "safe",
+        trick: "none",
+        claim: "Maple Credit Union account page",
+        url: "https://secure.maplecu.example.com/account",
+        tell: "secure.maplecu.example.com",
+        tip: "Safe: secure.maplecu.example.com stays on the credit union's own example.com domain."
+      },
+      {
+        id: "library",
+        answer: "safe",
+        trick: "none",
+        claim: "Birch Library card renewal",
+        url: "https://www.birchlibrary.example.org/renew",
+        tell: "birchlibrary.example.org",
+        tip: "Safe: birchlibrary.example.org matches the library's name and uses https. No extra words are tacked on."
+      },
+      {
+        id: "utilities",
+        answer: "safe",
+        trick: "none",
+        claim: "Riverview Utilities bill pay",
+        url: "https://pay.riverviewutils.example.com/bills",
+        tell: "pay.riverviewutils.example.com",
+        tip: "Safe: pay.riverviewutils.example.com is a payment subdomain on the utility's own domain."
+      },
+      {
+        id: "school",
+        answer: "safe",
+        trick: "none",
+        claim: "Pinecone School parent portal",
+        url: "https://parents.pineconeschool.example.org/home",
+        tell: "parents.pineconeschool.example.org",
+        tip: "Safe: the parent portal sits on pineconeschool.example.org, the school's own address."
+      },
+      {
+        id: "insurance",
+        answer: "safe",
+        trick: "none",
+        claim: "Blue Harbor Insurance claims",
+        url: "https://www.blueharborins.example.com/claims",
+        tell: "blueharborins.example.com",
+        tip: "Safe: blueharborins.example.com is the insurer's exact domain, served over https."
+      },
+      {
+        id: "transit",
+        answer: "safe",
+        trick: "none",
+        claim: "Cedar Transit trip planner",
+        url: "https://www.cedartransit.example.org/planner",
+        tell: "cedartransit.example.org",
+        tip: "Safe: cedartransit.example.org is the transit agency's own site, and the address starts with https."
+      },
+      {
+        id: "pharmacy",
+        answer: "safe",
+        trick: "none",
+        claim: "Larkspur Pharmacy refill request",
+        url: "https://refill.larkspurpharmacy.example.com/start",
+        tell: "refill.larkspurpharmacy.example.com",
+        tip: "Safe: refill.larkspurpharmacy.example.com stays on the pharmacy's real domain."
+      },
+      {
+        id: "benefits",
+        answer: "safe",
+        trick: "none",
+        claim: "Willow Benefits open enrollment",
+        url: "https://enroll.willowbenefits.example.org/open",
+        tell: "enroll.willowbenefits.example.org",
+        tip: "Safe: enroll.willowbenefits.example.org is a normal subdomain of the benefits site."
+      },
+      {
+        id: "market",
+        answer: "safe",
+        trick: "none",
+        claim: "Oak Street Market weekly ad",
+        url: "https://www.oakstreetmarket.example.com/weekly-ad",
+        tell: "oakstreetmarket.example.com",
+        tip: "Safe: oakstreetmarket.example.com is spelled correctly and uses https. It is just a store flyer, not a surprise login."
+      },
+      {
+        id: "savings",
+        answer: "safe",
+        trick: "none",
+        claim: "Summit Savings statements",
+        url: "https://statements.summitsavings.example.com/view",
+        tell: "statements.summitsavings.example.com",
+        tip: "Safe: statements.summitsavings.example.com is on the bank's own domain with https."
+      },
+      {
+        id: "clinic",
+        answer: "safe",
+        trick: "none",
+        claim: "Riverside Clinic patient portal",
+        url: "https://portal.riversideclinic.example.org/login",
+        tell: "portal.riversideclinic.example.org",
+        tip: "Safe: portal.riversideclinic.example.org is the clinic's own patient portal."
+      },
+      {
+        id: "city",
+        answer: "safe",
+        trick: "none",
+        claim: "City of Fairhaven parking permits",
+        url: "https://permits.fairhaven.example.org/parking",
+        tell: "permits.fairhaven.example.org",
+        tip: "Safe: permits.fairhaven.example.org is the city's own permits page, served over https."
+      },
+      {
+        id: "condos",
+        answer: "safe",
+        trick: "none",
+        claim: "Harborview Condos resident portal",
+        url: "https://residents.harborviewcondos.example.com/home",
+        tell: "residents.harborviewcondos.example.com",
+        tip: "Safe: residents.harborviewcondos.example.com stays on the building's own domain."
+      },
+      {
+        id: "swap-example",
+        answer: "fake",
+        trick: "swap",
+        claim: "Your Harbor Bank login",
+        url: "https://www.harborbank.examp1e.com/login",
+        tell: "examp1e",
+        tip: "Fake: the ending is examp1e.com, with a number 1 in place of the letter l. Lookalike letters and numbers are a classic trick."
+      },
+      {
+        id: "swap-mail",
+        answer: "fake",
+        trick: "swap",
+        claim: "Your Nimbus Mail inbox",
+        url: "https://mail.n1mbusmail.example.org/inbox",
+        tell: "n1mbusmail",
+        tip: "Fake: Nimbus is spelled n1mbusmail, with a 1 instead of the letter i. Read every letter in the name."
+      },
+      {
+        id: "swap-cu",
+        answer: "fake",
+        trick: "swap",
+        claim: "Maple Credit Union account page",
+        url: "https://secure.map1ecu.example.com/account",
+        tell: "map1ecu",
+        tip: "Fake: Maple is spelled map1ecu, swapping in a number 1. The real page would be maplecu.example.com."
+      },
+      {
+        id: "extra-ins",
+        answer: "fake",
+        trick: "extra",
+        claim: "Blue Harbor Insurance claims",
+        url: "https://www.blueharborins-secure-login.example.net/claims",
+        tell: "blueharborins-secure-login",
+        tip: "Fake: extra words like secure and login are glued onto the name. The real site would be blueharborins.example.com, not a longer lookalike."
+      },
+      {
+        id: "extra-savings",
+        answer: "fake",
+        trick: "extra",
+        claim: "Summit Savings password reset",
+        url: "https://summitsavings-verify-now.example.net/reset",
+        tell: "summitsavings-verify-now",
+        tip: "Fake: verify-now is tacked onto the bank's name. Urgency words in the domain are a warning sign."
+      },
+      {
+        id: "sub-bank",
+        answer: "fake",
+        trick: "subdomain",
+        claim: "Your Harbor Bank login",
+        url: "https://harborbank.example.com.verify-now.example.net/login",
+        tell: "verify-now.example.net",
+        tip: "Fake: harborbank.example.com is only a subdomain. The site you would actually visit is the last part, verify-now.example.net."
+      },
+      {
+        id: "sub-mail",
+        answer: "fake",
+        trick: "subdomain",
+        claim: "Your Nimbus Mail inbox",
+        url: "https://nimbusmail.example.org.mail-alert.example.net/inbox",
+        tell: "mail-alert.example.net",
+        tip: "Fake: nimbusmail.example.org is parked in front as a subdomain. The real host is mail-alert.example.net."
+      },
+      {
+        id: "tld-co",
+        answer: "fake",
+        trick: "tld",
+        claim: "Maple Credit Union account page",
+        url: "https://www.maplecu.example.co/account",
+        tell: ".co",
+        tip: "Fake: the ending is .co, not .com. A one-letter change in the ending can send you to a lookalike site."
+      },
+      {
+        id: "tld-cm",
+        answer: "fake",
+        trick: "tld",
+        claim: "Larkspur Pharmacy refill request",
+        url: "https://www.larkspurpharmacy.example.cm/refill",
+        tell: ".cm",
+        tip: "Fake: the ending is .cm, not .com. That missing o sends you somewhere else."
+      },
+      {
+        id: "http-benefits",
+        answer: "fake",
+        trick: "http",
+        claim: "Willow Benefits open enrollment",
+        url: "http://enroll.willowbenefits.example.org/open",
+        tell: "http://",
+        tip: "Fake: this enrollment page starts with http://, not https://. A real sign-in or benefits page should show the extra s, which means the connection is encrypted."
+      },
+      {
+        id: "http-utils",
+        answer: "fake",
+        trick: "http",
+        claim: "Riverview Utilities bill pay",
+        url: "http://pay.riverviewutils.example.com/bills",
+        tell: "http://",
+        tip: "Fake: a bill-pay page on plain http:// is not safe. Look for https:// before you enter any payment info."
+      },
+      {
+        id: "short-transit",
+        answer: "fake",
+        trick: "shortener",
+        claim: "Cedar Transit trip planner",
+        url: "https://lnk.example.net/ct8p",
+        tell: "lnk.example.net",
+        tip: "Fake: this is a short link, so you cannot see the real destination. Never sign in or pay through a shortened address."
+      },
+      {
+        id: "short-reset",
+        answer: "fake",
+        trick: "shortener",
+        claim: "Summit Savings password reset",
+        url: "https://go.example.net/r9k2",
+        tell: "go.example.net",
+        tip: "Fake: short links hide where you will actually land. A real password reset would show the bank's full address."
+      },
+      {
+        id: "at-library",
+        answer: "fake",
+        trick: "at",
+        claim: "Birch Library card renewal",
+        url: "https://birchlibrary.example.org@card-renew.example.net/renew",
+        tell: "@card-renew.example.net",
+        tip: "Fake: everything before the @ is camouflage. The browser goes to card-renew.example.net, not the library."
+      },
+      {
+        id: "at-mail",
+        answer: "fake",
+        trick: "at",
+        claim: "Your Nimbus Mail inbox",
+        url: "https://mail.nimbusmail.example.org@inbox-update.example.net/login",
+        tell: "@inbox-update.example.net",
+        tip: "Fake: the @ trick hides the real host after the @ sign. This would open inbox-update.example.net."
+      }
+    ];
+
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenEnd = document.getElementById("screen-end");
+    var startBest = document.getElementById("start-best");
+    var btnPlay = document.getElementById("btn-play");
+    var btnAgain = document.getElementById("btn-again");
+    var btnSafe = document.getElementById("btn-safe");
+    var btnFake = document.getElementById("btn-fake");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudTime = document.getElementById("hud-time");
+    var hudStreak = document.getElementById("hud-streak");
+    var timerEl = document.getElementById("timer");
+    var timerFill = document.getElementById("timer-fill");
+    var linkCard = document.getElementById("link-card");
+    var linkClaim = document.getElementById("link-claim");
+    var linkUrl = document.getElementById("link-url");
+    var feedbackEl = document.getElementById("feedback");
+    var feedbackAnswer = document.getElementById("feedback-answer");
+    var feedbackVerdict = document.getElementById("feedback-verdict");
+    var feedbackUrl = document.getElementById("feedback-url");
+    var feedbackTip = document.getElementById("feedback-tip");
+
+    var deck = [];
+    var index = 0;
+    var score = 0;
+    var streak = 0;
+    var correctCount = 0;
+    var answeredCount = 0;
+    var misses = [];
+    var locked = false;
+    var timerId = null;
+    var timeLeft = 0;
+    var timeLimit = START_SECONDS;
+    var lastTick = 0;
+    var audioCtx = null;
+    var swipeStart = null;
+
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundCorrect() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+    function soundWrong() { beep(180, 0.28, "sawtooth", 0.05); }
+    function soundTimeout() { beep(320, 0.35, "triangle", 0.05); }
+
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+
+    function dealRound() {
+      var groups = { safe: [], fake: [] };
+      LINKS.forEach(function (m) { groups[m.answer].push(m); });
+      var per = Math.floor(ROUND_SIZE / 2);
+      var next = [];
+      ["safe", "fake"].forEach(function (key) {
+        next = next.concat(shuffle(groups[key]).slice(0, per));
+      });
+      return shuffle(next);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function softenUrl(escaped) {
+      return escaped.replace(/([./@:_\-])/g, "$1<wbr>");
+    }
+
+    function highlightTell(url, tell) {
+      var src = String(url);
+      var needle = String(tell || "");
+      if (!needle) return '<span class="link-url">' + softenUrl(escapeHtml(src)) + "</span>";
+      var at = src.indexOf(needle);
+      if (at === -1) return '<span class="link-url">' + softenUrl(escapeHtml(src)) + "</span>";
+      return '<span class="link-url">' +
+        softenUrl(escapeHtml(src.slice(0, at))) +
+        '<mark class="tell">' + softenUrl(escapeHtml(src.slice(at, at + needle.length))) + "</mark>" +
+        softenUrl(escapeHtml(src.slice(at + needle.length))) +
+        "</span>";
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+
+    function answerLabel(value) {
+      if (value === "safe") return "Safe";
+      if (value === "fake") return "Fake";
+      return value;
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (index + 1) + " / " + ROUND_SIZE;
+      hudStreak.textContent = streak >= 2 ? "Streak ×" + streak + "  •  bonus points!" : "";
+    }
+
+    function renderLink(item) {
+      linkClaim.textContent = item.claim;
+      linkUrl.innerHTML = softenUrl(escapeHtml(item.url));
+      document.body.setAttribute("data-correct", item.answer);
+      document.body.setAttribute("data-link-id", item.id);
+      document.body.setAttribute("data-trick", item.trick);
+      document.body.setAttribute("data-phase", "playing");
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        cancelAnimationFrame(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      timeLimit = Math.max(MIN_SECONDS, START_SECONDS - index * TIME_STEP);
+      timeLeft = timeLimit;
+      lastTick = performance.now();
+      timerEl.classList.remove("warn", "danger");
+      timerFill.style.transform = "scaleX(1)";
+      hudTime.textContent = String(Math.ceil(timeLeft));
+
+      function tick(now) {
+        var dt = (now - lastTick) / 1000;
+        lastTick = now;
+        timeLeft -= dt;
+        var pct = Math.max(0, timeLeft / timeLimit);
+        timerFill.style.transform = "scaleX(" + pct + ")";
+        timerEl.classList.toggle("warn", pct < 0.4 && pct >= 0.2);
+        timerEl.classList.toggle("danger", pct < 0.2);
+        hudTime.textContent = String(Math.max(0, Math.ceil(timeLeft)));
+        if (timeLeft <= 0) {
+          timerId = null;
+          settleAnswer(null, true);
+          return;
+        }
+        timerId = requestAnimationFrame(tick);
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    function setChoicesEnabled(on) {
+      btnSafe.disabled = !on;
+      btnFake.disabled = !on;
+    }
+
+    function showLink() {
+      locked = false;
+      setChoicesEnabled(true);
+      feedbackEl.classList.remove("show", "ok", "bad");
+      document.querySelector(".pane").classList.remove("is-feedback");
+      renderLink(deck[index]);
+      updateHud();
+      startTimer();
+    }
+
+    function settleAnswer(guess, timedOut) {
+      if (locked) return;
+      locked = true;
+      stopTimer();
+      setChoicesEnabled(false);
+
+      var item = deck[index];
+      var correct = !timedOut && guess === item.answer;
+      answeredCount += 1;
+
+      var verdict;
+      var gained = 0;
+      if (timedOut) {
+        streak = 0;
+        soundTimeout();
+        verdict = "Time’s up";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "Correct answer: " + answerLabel(item.answer);
+        misses.push({
+          claim: item.claim,
+          url: item.url,
+          guessed: "Timed out",
+          correct: answerLabel(item.answer),
+          tip: item.tip
+        });
+      } else if (correct) {
+        streak += 1;
+        correctCount += 1;
+        var speed = Math.round(SPEED_MAX * Math.max(0, timeLeft) / timeLimit);
+        gained = BASE_POINTS + speed + (streak - 1) * STREAK_BONUS;
+        score += gained;
+        soundCorrect();
+        verdict = "Correct  +" + gained;
+        feedbackEl.classList.add("ok");
+        feedbackAnswer.textContent = answerLabel(item.answer);
+      } else {
+        streak = 0;
+        soundWrong();
+        verdict = "Missed it";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "You said " + answerLabel(guess) + " · it was " + answerLabel(item.answer);
+        misses.push({
+          claim: item.claim,
+          url: item.url,
+          guessed: answerLabel(guess),
+          correct: answerLabel(item.answer),
+          tip: item.tip
+        });
+      }
+
+      feedbackVerdict.textContent = verdict;
+      feedbackUrl.innerHTML = highlightTell(item.url, item.tell);
+      feedbackTip.textContent = item.tip;
+      feedbackEl.classList.add("show");
+      document.querySelector(".pane").classList.add("is-feedback");
+      updateHud();
+      document.body.setAttribute("data-phase", "feedback");
+      document.body.setAttribute("data-last-result", correct ? "correct" : (timedOut ? "timeout" : "wrong"));
+      document.body.setAttribute("data-last-gained", String(gained));
+      document.body.setAttribute("data-score", String(score));
+      document.body.setAttribute("data-streak", String(streak));
+
+      setTimeout(advance, FEEDBACK_MS);
+    }
+
+    function advance() {
+      if (index >= ROUND_SIZE - 1) {
+        endGame();
+        return;
+      }
+      index += 1;
+      showLink();
+    }
+
+    function rankTitle(correct) {
+      if (correct === ROUND_SIZE) return "Ace Detective";
+      if (correct >= 11) return "Sharp Eye";
+      if (correct >= 9) return "On the Case";
+      if (correct >= 6) return "Getting There";
+      return "Keep Practicing";
+    }
+
+    function startGame() {
+      unlockAudio();
+      deck = dealRound();
+      index = 0;
+      score = 0;
+      streak = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      misses = [];
+      document.body.setAttribute("data-score", "0");
+      document.body.setAttribute("data-streak", "0");
+      showScreen("play");
+      showLink();
+    }
+
+    function endGame() {
+      stopTimer();
+      document.body.removeAttribute("data-correct");
+      document.body.setAttribute("data-phase", "end");
+      document.body.setAttribute("data-score", String(score));
+
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(best);
+
+      document.getElementById("end-rank").textContent = rankTitle(correctCount);
+      document.getElementById("end-title").textContent = "Round complete · " + correctCount + " of " + answeredCount + " correct";
+      document.getElementById("end-score").textContent = score;
+      document.getElementById("end-accuracy").textContent = correctCount + "/" + answeredCount;
+      document.getElementById("end-best").textContent = best;
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      var recapTitle = document.getElementById("end-recap-title");
+      var box = document.getElementById("end-misses");
+      if (misses.length === 0) {
+        recapTitle.textContent = "Nice work";
+        box.innerHTML = '<p class="all-clear">You spotted every link. Keep reading the whole address before you sign in or pay, and type known sites yourself instead of tapping a surprise link.</p>';
+      } else {
+        recapTitle.textContent = "Links you missed";
+        box.innerHTML = misses.map(function (m) {
+          return '<div class="miss"><div class="miss-head">' +
+            escapeHtml(m.claim) + " · You: " + escapeHtml(m.guessed) +
+            " · Answer: " + escapeHtml(m.correct) +
+            "</div><div class=\"miss-url\">" + softenUrl(escapeHtml(m.url)) +
+            "</div><div class=\"miss-tip\">" + escapeHtml(m.tip) + "</div></div>";
+        }).join("");
+      }
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnSafe.addEventListener("click", function () { settleAnswer("safe", false); });
+    btnFake.addEventListener("click", function () { settleAnswer("fake", false); });
+
+    document.addEventListener("keydown", function (event) {
+      var key = event.key;
+      if (key === "Enter") {
+        if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+          startGame();
+        }
+        return;
+      }
+      if (screenPlay.classList.contains("hidden") || locked) return;
+      if (key === "ArrowLeft" || key === "a" || key === "A") {
+        event.preventDefault();
+        settleAnswer("safe", false);
+      } else if (key === "ArrowRight" || key === "d" || key === "D") {
+        event.preventDefault();
+        settleAnswer("fake", false);
+      }
+    });
+
+    linkCard.addEventListener("touchstart", function (event) {
+      if (locked || !event.changedTouches.length) return;
+      var t = event.changedTouches[0];
+      swipeStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+    }, { passive: true });
+
+    linkCard.addEventListener("touchend", function (event) {
+      if (!swipeStart || locked) { swipeStart = null; return; }
+      var t = event.changedTouches[0];
+      var dx = t.clientX - swipeStart.x;
+      var dy = t.clientY - swipeStart.y;
+      var dt = Date.now() - swipeStart.time;
+      swipeStart = null;
+      if (dt > 800) return;
+      var ax = Math.abs(dx);
+      var ay = Math.abs(dy);
+      if (ax < 50 && ay < 50) return;
+      if (ax > ay * 1.15) {
+        settleAnswer(dx < 0 ? "safe" : "fake", false);
+      }
+    }, { passive: true });
+
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+  </script>
+</body>
+</html>
