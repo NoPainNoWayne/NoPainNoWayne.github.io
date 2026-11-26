@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Fake Shop Finder</title>
+  <style>
+    /* ===== Brand colors: navy + gold (same palette as the other NoPainNoWayne games) ===== */
+    :root {
+      --navy: #0A1B33;
+      --navy-mid: #132946;
+      --navy-light: #1C3B61;
+      --gold: #D4AF37;
+      --gold-deep: #B8941F;
+      --gold-soft: #F3E2A0;
+      --cream: #F6F1E3;
+      --card: #FFFBF3;
+      --ink: #102033;
+      --muted: #5B6B7C;
+      --line: #E4DCC8;
+      --real: #1E8A56;
+      --real-deep: #146B42;
+      --scam: #C0392B;
+      --scam-deep: #922B21;
+      --danger: #E24A3B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: "Segoe UI", "Trebuchet MS", system-ui, Arial, sans-serif;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    body { overflow: auto; }
+
+    #app {
+      min-height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 14px;
+      background:
+        radial-gradient(ellipse at top, rgba(212, 175, 55, 0.12), transparent 55%),
+        radial-gradient(ellipse at bottom, rgba(28, 59, 97, 0.9), var(--navy));
+    }
+
+    .wrap { width: 100%; max-width: 520px; min-width: 0; }
+    .hidden { display: none !important; }
+
+    h1 {
+      font-size: clamp(24px, 7vw, 36px);
+      line-height: 1.1;
+      color: var(--gold);
+      letter-spacing: 0.03em;
+      text-align: center;
+      margin: 10px 0 8px;
+    }
+
+    .pitch {
+      text-align: center;
+      color: var(--gold-soft);
+      font-size: clamp(15px, 3.6vw, 17px);
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--navy-mid);
+      border: 2px solid var(--gold);
+      border-radius: 18px;
+      padding: 24px 22px 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo { display: block; width: 72px; height: 80px; margin: 0 auto 4px; }
+
+    .howto {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px 12px 32px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      color: var(--cream);
+    }
+    .howto li { margin: 0 0 6px; }
+    .howto li:last-child { margin-bottom: 0; }
+
+    .best-line {
+      text-align: center;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 12px;
+      min-height: 1.2em;
+    }
+
+    .brand {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+
+    .fake-note {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      opacity: 0.85;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .btn-play {
+      display: block;
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 22px;
+      font-weight: 800;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 0 var(--gold-deep);
+    }
+    .btn-play:hover { filter: brightness(1.06); }
+    .btn-play:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--gold-deep); }
+
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--gold-soft);
+    }
+    .hud > div { min-width: 0; }
+    .hud strong { color: var(--gold); font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    .streak {
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      min-height: 1.2em;
+      margin-bottom: 6px;
+    }
+
+    .timer {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+      border-radius: 999px;
+      transform-origin: left center;
+    }
+    .timer.warn .timer-fill { background: #E8952A; }
+    .timer.danger .timer-fill { background: var(--danger); }
+
+    .tap-hint {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-soft);
+      margin: 0 0 8px;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+    .tap-hint strong { color: var(--gold); }
+
+    .shop {
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #1a2a40;
+      min-width: 0;
+    }
+
+    .chrome {
+      background: linear-gradient(180deg, var(--navy-light), var(--navy-mid));
+      color: var(--cream);
+      padding: 8px 12px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 3px solid var(--gold);
+    }
+    .chrome-dots { display: flex; gap: 6px; flex: 0 0 auto; }
+    .chrome-dots span {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.85;
+    }
+    .chrome-dots span:nth-child(2) { opacity: 0.6; }
+    .chrome-dots span:nth-child(3) { opacity: 0.4; }
+    .chrome-title {
+      flex: 1 1 auto;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-align: center;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .address-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: #F3EBDA;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px;
+      min-width: 0;
+    }
+    .lock {
+      flex: 0 0 auto;
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+    }
+    .address-bar {
+      flex: 1 1 auto;
+      min-width: 0;
+      background: #fff;
+      border: 2px solid var(--navy-light);
+      border-radius: 8px;
+      padding: 6px 8px;
+    }
+    .shop-url {
+      display: block;
+      font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+      font-size: 12.5px;
+      line-height: 1.4;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      max-width: 100%;
+    }
+
+    .pane { position: relative; overflow: hidden; isolation: isolate; min-width: 0; }
+    .pane.is-feedback { background: #F6F1E3; }
+    .pane.is-feedback .shop-body { visibility: hidden; }
+
+    .shop-body {
+      padding: 0 0 12px;
+      min-height: 268px;
+      background: linear-gradient(180deg, #FFFBF3, #F7F0E0);
+      min-width: 0;
+    }
+
+    .banner {
+      margin: 0;
+      padding: 7px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+      color: var(--navy);
+      background: #F3E2A0;
+      border-bottom: 1px solid var(--line);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .banner.hidden-banner { display: none; }
+
+    .product {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 12px 10px;
+      min-width: 0;
+    }
+    .art {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      line-height: 1;
+      flex: 0 0 auto;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.28), transparent 50%),
+        var(--art, #1C3B61);
+      box-shadow: inset 0 0 0 2px rgba(212, 175, 55, 0.4);
+    }
+    .product-info { flex: 1 1 auto; min-width: 0; }
+    .product-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .price-row {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+      overflow-wrap: anywhere;
+    }
+    .was-price {
+      margin-left: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .row {
+      margin: 0 12px 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      min-width: 0;
+    }
+    .row-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .row-text {
+      font-size: 13.5px;
+      line-height: 1.4;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .mark {
+      cursor: pointer;
+      border-radius: 3px;
+      border-bottom: 1.5px dashed rgba(16, 32, 51, 0.3);
+      padding: 0 1px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    .mark.picked {
+      background: #F3E2A0;
+      border-bottom-color: var(--gold-deep);
+      box-shadow: inset 0 -2px 0 var(--gold);
+    }
+
+    .is-feedback .mark { cursor: default; }
+    .is-feedback .mark.was-flag.picked {
+      background: #C8EBD8;
+      box-shadow: inset 0 -2px 0 var(--real);
+      border-bottom-color: var(--real-deep);
+    }
+    .is-feedback .mark.was-flag:not(.picked) {
+      background: #F8D4D0;
+      box-shadow: inset 0 -2px 0 var(--scam);
+      border-bottom-color: var(--scam-deep);
+    }
+    .is-feedback .mark.picked:not(.was-flag) {
+      background: #E8E0D0;
+      box-shadow: inset 0 -2px 0 #9A8B70;
+      border-bottom-color: #8A7B60;
+    }
+
+    .feedback {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 14px 16px 18px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #F6F1E3;
+      transform: translateY(100%);
+      transition: transform 0.22s ease;
+    }
+    .feedback.show { transform: translateY(0); }
+    body.fast .feedback { transition: none; }
+    .feedback .verdict {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      overflow-wrap: anywhere;
+    }
+    .feedback.ok .verdict { color: var(--real); }
+    .feedback.bad .verdict { color: var(--scam); }
+    .feedback .tip {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .feedback .answer-line {
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+    }
+    .feedback .flag-recap {
+      font-size: 13.5px;
+      line-height: 1.4;
+      color: #3A4A5A;
+      margin: 0 0 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .swipe-hint {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--gold-soft);
+      opacity: 0.8;
+      margin: 8px 0 2px;
+      line-height: 1.35;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-choice {
+      font-size: clamp(15px, 3.8vw, 18px);
+      font-weight: 800;
+      padding: 12px 8px 10px;
+      border-radius: 14px;
+      color: #fff;
+      letter-spacing: 0.01em;
+      min-height: 58px;
+      line-height: 1.15;
+    }
+    .btn-choice small {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      opacity: 0.85;
+      margin-top: 3px;
+    }
+    .btn-real { background: var(--real); box-shadow: 0 4px 0 var(--real-deep); }
+    .btn-scam { background: var(--scam); box-shadow: 0 4px 0 var(--scam-deep); }
+    .btn-choice:hover { filter: brightness(1.06); }
+    .btn-choice:active { transform: translateY(2px); box-shadow: 0 2px 0 currentColor; }
+    .btn-choice:disabled {
+      opacity: 0.55;
+      cursor: default;
+      transform: none;
+    }
+
+    .score-block { text-align: center; margin: 6px 0 14px; }
+    .end-rank {
+      text-align: center;
+      font-size: clamp(22px, 6vw, 28px);
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .end-title {
+      text-align: center;
+      font-size: 15px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .final-score {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .score-label {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+      margin-bottom: 4px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin: 8px 0 4px;
+      font-size: 15px;
+      flex-wrap: wrap;
+    }
+    .stats strong { color: var(--gold); }
+    .new-best {
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .recap {
+      background: rgba(0, 0, 0, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      max-height: 260px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .recap h2 {
+      font-size: 14px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .miss {
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    .miss:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .miss-head { font-weight: 700; color: var(--gold-soft); margin-bottom: 2px; overflow-wrap: anywhere; word-break: break-word; }
+    .miss-url {
+      font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 4px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .miss-tip { color: var(--cream); overflow-wrap: anywhere; word-break: break-word; }
+    .all-clear { font-size: 14.5px; line-height: 1.45; color: var(--cream); }
+
+    @media (max-width: 430px) {
+      #app { padding: 10px 10px 12px; }
+      .panel { padding: 20px 16px 16px; }
+      .shop-body { min-height: 248px; }
+      .product { padding: 10px 10px 8px; gap: 8px; }
+      .art { width: 64px; height: 64px; font-size: 30px; }
+      .row { margin: 0 10px 7px; padding: 7px 8px; }
+      .btn-choice { padding: 10px 6px 8px; min-height: 54px; }
+      .choices { gap: 6px; }
+      .shop-url { font-size: 12px; }
+    }
+
+    @media (max-height: 620px) {
+      #app { justify-content: flex-start; }
+      .logo { width: 56px; height: 62px; }
+      h1 { margin-top: 4px; }
+      .shop-body { min-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="wrap">
+
+      <section id="screen-start" class="panel">
+        <svg class="logo" viewBox="0 0 72 80" aria-hidden="true">
+          <path d="M18 28 h36 l-3 34 a8 8 0 0 1-8 7 H29 a8 8 0 0 1-8-7 Z" fill="#132946" stroke="#D4AF37" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M26 28 v-6 a10 10 0 0 1 20 0 v6" fill="none" stroke="#D4AF37" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="58" r="14" fill="#0A1B33" stroke="#D4AF37" stroke-width="3"/>
+          <circle cx="50" cy="58" r="7" fill="none" stroke="#F3E2A0" stroke-width="2.2"/>
+          <path d="M56 64 L64 74" fill="none" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+        <h1>Fake Shop Finder</h1>
+        <p class="pitch">Can you tell a real store from a holiday scam shop?</p>
+        <ul class="howto">
+          <li>10 pretend store pages appear, one at a time, and a short timer is running.</li>
+          <li>Tap any red flags you spot: a price that is way too good, payment only by gift card, wire, or crypto, missing contact or return info, a lookalike or odd web address, reviews that all say the same thing, a fake countdown, a brand-new site, or a shop that only exists in social media ads.</li>
+          <li>Then tap <strong>Real Shop</strong> or <strong>Scam Shop</strong>. Real stores have fair prices, ordinary card payment, and a way to get in touch — not every page is a scam, so leave those unmarked and choose Real Shop.</li>
+          <li>You score points for the right call and for each flag you catch, plus a speed bonus and a streak bonus. After each page, a tip explains the giveaways.</li>
+          <li>On a keyboard: <strong>R</strong> or ← Real Shop, <strong>S</strong> or → Scam Shop. You can also swipe the page: left Real Shop, right Scam Shop. Press Enter to start.</li>
+        </ul>
+        <p id="start-best" class="best-line"></p>
+        <button type="button" class="btn-play" id="btn-play">Play</button>
+        <p class="fake-note">Every store, product, and web address in this game is made up for practice. Addresses are display-only and cannot be opened. Phone numbers use the 555 exchange.</p>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+      <section id="screen-play" class="hidden">
+        <div class="hud">
+          <div>Score<br><strong id="hud-score">0</strong></div>
+          <div style="text-align:center">Shop<br><strong id="hud-progress">1 / 10</strong></div>
+          <div style="text-align:right">Time<br><strong id="hud-time">18</strong></div>
+        </div>
+        <div class="streak" id="hud-streak"></div>
+        <div class="timer" id="timer"><div class="timer-fill" id="timer-fill"></div></div>
+        <p class="tap-hint">Tap any red flags, then choose. <strong id="flag-count">Flags marked: 0</strong></p>
+
+        <article class="shop" id="shop-card">
+          <div class="chrome">
+            <div class="chrome-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+            <div class="chrome-title" id="shop-store"></div>
+          </div>
+          <div class="address-row">
+            <svg class="lock" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="3" y="7" width="10" height="8" rx="1.5" fill="#132946"/>
+              <path d="M5 7 V5 a3 3 0 0 1 6 0 V7" fill="none" stroke="#132946" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <div class="address-bar">
+              <span class="shop-url" id="shop-domain"></span>
+            </div>
+          </div>
+          <div class="pane" id="shop-pane">
+            <div class="shop-body" id="shop-body">
+              <div class="banner hidden-banner" id="shop-banner"></div>
+              <div class="product">
+                <div class="art" id="shop-art" aria-hidden="true"></div>
+                <div class="product-info">
+                  <div class="product-name" id="shop-product"></div>
+                  <div class="price-row" id="shop-price"></div>
+                </div>
+              </div>
+              <div class="row" id="row-reviews">
+                <div class="row-label">Reviews</div>
+                <div class="row-text" id="shop-reviews"></div>
+              </div>
+              <div class="row" id="row-payment">
+                <div class="row-label">Payment</div>
+                <div class="row-text" id="shop-payment"></div>
+              </div>
+              <div class="row" id="row-contact">
+                <div class="row-label">Contact &amp; returns</div>
+                <div class="row-text" id="shop-contact"></div>
+              </div>
+              <div class="row" id="row-meta">
+                <div class="row-label">About this store</div>
+                <div class="row-text" id="shop-meta"></div>
+              </div>
+            </div>
+            <div class="feedback" id="feedback">
+              <div class="answer-line" id="feedback-answer"></div>
+              <div class="verdict" id="feedback-verdict"></div>
+              <p class="flag-recap" id="feedback-flags"></p>
+              <p class="tip" id="feedback-tip"></p>
+            </div>
+          </div>
+        </article>
+
+        <p class="swipe-hint">Or swipe the page: left Real Shop, right Scam Shop</p>
+        <div class="choices" id="choices">
+          <button type="button" class="btn-choice btn-real" id="btn-real">
+            Real Shop
+            <small>R or Left</small>
+          </button>
+          <button type="button" class="btn-choice btn-scam" id="btn-scam">
+            Scam Shop
+            <small>S or Right</small>
+          </button>
+        </div>
+      </section>
+
+      <section id="screen-end" class="panel hidden">
+        <p class="end-rank" id="end-rank">Cart Protector</p>
+        <p class="end-title" id="end-title">Round complete</p>
+        <div class="score-block">
+          <div class="score-label">Your score</div>
+          <div class="final-score" id="end-score">0</div>
+          <div class="stats">
+            <div>Verdicts<br><strong id="end-accuracy">0/10</strong></div>
+            <div>Flags<br><strong id="end-flags">0/0</strong></div>
+            <div>Best<br><strong id="end-best">0</strong></div>
+          </div>
+          <p class="new-best" id="end-new-best"></p>
+        </div>
+        <div class="recap" id="end-recap">
+          <h2 id="end-recap-title">Shops you missed</h2>
+          <div id="end-misses"></div>
+        </div>
+        <button type="button" class="btn-play" id="btn-again">Play again</button>
+        <p class="brand">NoPainNoWayne</p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Fake Shop Finder — a small teaching game about spotting
+       scam storefronts. Everything lives in this one file so it
+       can be pasted into a Google Sites embed (a sandboxed iframe).
+       Stores, brands, and addresses are fictional. Displayed
+       addresses are never real links.
+       ============================================================ */
+
+    var ROUND_SIZE = 10;
+    var START_SECONDS = 18;
+    var MIN_SECONDS = 13;
+    var TIME_STEP = 0.4;
+    var FAST = location.hash === "#fast";
+    var FEEDBACK_MS = FAST ? 800 : 2800;
+    if (FAST) document.body.classList.add("fast");
+    var FLAG_POINTS = 25;
+    var VERDICT_POINTS = 100;
+    var SPEED_MAX = 50;
+    var STREAK_BONUS = 25;
+    var BEST_KEY = "npnw-fake-shop-finder-best";
+
+    var FLAG_LABELS = {
+      price: "Price too good to be true",
+      payment: "Payment only by gift card, wire, or crypto",
+      contact: "No contact info or return policy",
+      domain: "Lookalike or odd domain",
+      reviews: "Fake-looking reviews",
+      urgency: "Fake countdown pressure",
+      newsite: "Brand-new site",
+      social: "Social-media-ad-only store"
+    };
+
+    var SHOPS = [
+      {
+        id: "cedar-sweater",
+        answer: "real",
+        store: "Cedar & Cozy",
+        domain: "www.cedarandcozy.example.com",
+        domainFlag: null,
+        product: "Merino holiday sweater",
+        emoji: "\uD83E\uDDF6",
+        accent: "#2E4A3A",
+        price: "$68",
+        wasPrice: "$79",
+        priceFlag: null,
+        reviews: "4.6 stars from 318 reviews. \u201CWarm and true to size.\u201D \u201CThe navy one pilled a little after a wash.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card, or pay in the store app",
+        paymentFlag: null,
+        contact: "30-day returns. Help: (555) 010-2241 or help@cedarandcozy.example.com",
+        contactFlag: null,
+        banner: "Free shipping on orders over $50",
+        bannerFlag: null,
+        meta: "Online since 2014 \u00B7 Shop in Maple Grove",
+        metaFlag: null,
+        tip: "Real shop: a modest sale, ordinary card payment, a phone and email you can use, mixed reviews, and a domain that matches the store name."
+      },
+      {
+        id: "northpine-beanie",
+        answer: "real",
+        store: "Northpine Outfitters",
+        domain: "www.northpineoutfitters.example.com",
+        domainFlag: null,
+        product: "Wool winter beanie",
+        emoji: "\uD83E\uDDE2",
+        accent: "#1E3A5F",
+        price: "$28",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.4 stars from 512 reviews. \u201CKeeps my ears warm.\u201D \u201CRuns a bit small.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Returns in 45 days. (555) 010-3318 or care@northpineoutfitters.example.com",
+        contactFlag: null,
+        banner: "Holiday shipping: order by Dec 12 for arrival before the 24th",
+        bannerFlag: null,
+        meta: "Online since 2009",
+        metaFlag: null,
+        tip: "Real shop: a fair price, ordinary card payment, a long-running site, and honest reviews that are not all five stars."
+      },
+      {
+        id: "harbor-cookbook",
+        answer: "real",
+        store: "Harbor Lane Books",
+        domain: "www.harborlanebooks.example.org",
+        domainFlag: null,
+        product: "Winter baking cookbook",
+        emoji: "\uD83D\uDCD8",
+        accent: "#3B2F4A",
+        price: "$24",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.7 stars from 209 reviews. \u201CClear recipes.\u201D \u201CWish it had more gluten-free notes.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "In-store pickup or 30-day returns. Desk: (555) 010-4402",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Family-run bookshop online since 2003",
+        metaFlag: null,
+        tip: "Real shop: a normal book price, a real phone number, and a domain that matches the shop."
+      },
+      {
+        id: "brightwick-mugs",
+        answer: "real",
+        store: "Brightwick Kitchen",
+        domain: "www.brightwickkitchen.example.com",
+        domainFlag: null,
+        product: "Ceramic cocoa mug set (2)",
+        emoji: "\u2615",
+        accent: "#5A3A28",
+        price: "$32",
+        wasPrice: "$36",
+        priceFlag: null,
+        reviews: "4.5 stars from 147 reviews. \u201CHeavy, nice glaze.\u201D \u201COne mug arrived with a tiny nick; they replaced it.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. help@brightwickkitchen.example.com or (555) 010-5520",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2016",
+        metaFlag: null,
+        tip: "Real shop: a small markdown, card checkout, and a review that mentions a real replacement \u2014 that is a good sign."
+      },
+      {
+        id: "meadowlark-dog",
+        answer: "real",
+        store: "Meadowlark Pets",
+        domain: "www.meadowlarkpets.example.net",
+        domainFlag: null,
+        product: "Holiday knit dog sweater",
+        emoji: "\uD83D\uDC36",
+        accent: "#3A4A2A",
+        price: "$22",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.3 stars from 88 reviews. \u201CCute on our terrier.\u201D \u201CSizing chart was a little off.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. (555) 010-6634 or hello@meadowlarkpets.example.net",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2012",
+        metaFlag: null,
+        tip: "Real shop: a mid-range price, mixed reviews, and a matching example.net address with a phone number."
+      },
+      {
+        id: "lumen-candles",
+        answer: "real",
+        store: "Lumen & Wick",
+        domain: "www.lumenandwick.example.com",
+        domainFlag: null,
+        product: "Pine candle trio",
+        emoji: "\uD83D\uDD6F",
+        accent: "#2A3B2E",
+        price: "$34",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.8 stars from 421 reviews. \u201CThe pine one smells like a tree, not cleaner.\u201D \u201CBurns evenly.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card, or pay in the shop",
+        paymentFlag: null,
+        contact: "30-day unopened returns. (555) 010-7745",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2011 \u00B7 Studio in Riverbend",
+        metaFlag: null,
+        tip: "Real shop: a fair gift price, card payment, and an established store with a phone number."
+      },
+      {
+        id: "paperfinch-wrap",
+        answer: "real",
+        store: "Paper Finch Stationers",
+        domain: "www.paperfinch.example.com",
+        domainFlag: null,
+        product: "Wrapping paper sampler (8 sheets)",
+        emoji: "\uD83C\uDF81",
+        accent: "#4A2E3A",
+        price: "$16",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.6 stars from 263 reviews. \u201CThick paper, pretty patterns.\u201D \u201CThe gold one wrinkled in the tube.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Returns on unopened packs. (555) 010-1180 or desk@paperfinch.example.com",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2007",
+        metaFlag: null,
+        tip: "Real shop: an everyday price, ordinary checkout, and reviews that mention a small flaw."
+      },
+      {
+        id: "oakember-train",
+        answer: "real",
+        store: "Oak & Ember Toys",
+        domain: "www.oakandembertoys.example.com",
+        domainFlag: null,
+        product: "Wooden holiday train set",
+        emoji: "\uD83D\uDE82",
+        accent: "#4A341F",
+        price: "$54",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.5 stars from 190 reviews. \u201CSturdy wood, no splinters.\u201D \u201CThe track connectors are tight at first.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "60-day returns. (555) 010-2293 or toys@oakandembertoys.example.com",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Family workshop online since 1998",
+        metaFlag: null,
+        tip: "Real shop: a reasonable toy price, a long history, and a real contact line."
+      },
+      {
+        id: "snowbell-tin",
+        answer: "real",
+        store: "Snowbell Bakery Shop",
+        domain: "shop.snowbellbakery.example.com",
+        domainFlag: null,
+        product: "Holiday cookie tin (shipped fresh)",
+        emoji: "\uD83C\uDF6A",
+        accent: "#5A2E2E",
+        price: "$29",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.4 stars from 615 reviews. \u201CCookies arrived firm, not stale.\u201D \u201CWish the tin was a bit bigger.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Allergy list on the box. Questions: (555) 010-3346",
+        contactFlag: null,
+        banner: "Ships Monday through Thursday so tins arrive fresh",
+        bannerFlag: null,
+        meta: "Bakery since 2001",
+        metaFlag: null,
+        tip: "Real shop: a normal bakery price, card payment, and a subdomain on the bakery\u2019s own domain."
+      },
+      {
+        id: "riverglass-lights",
+        answer: "real",
+        store: "Riverglass Home",
+        domain: "www.riverglasshome.example.com",
+        domainFlag: null,
+        product: "Indoor string lights (20 ft)",
+        emoji: "\u2728",
+        accent: "#1F3B4A",
+        price: "$22",
+        wasPrice: "$25",
+        priceFlag: null,
+        reviews: "4.2 stars from 377 reviews. \u201CWarm glow, not harsh.\u201D \u201COne bulb was out; they sent a spare.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. (555) 010-4457 or care@riverglasshome.example.com",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2010",
+        metaFlag: null,
+        tip: "Real shop: a small sale, mixed reviews, and a store that will mail a spare part."
+      },
+      {
+        id: "thistle-throw",
+        answer: "real",
+        store: "Thistle & Twine",
+        domain: "www.thistleandtwine.example.org",
+        domainFlag: null,
+        product: "Knit throw blanket",
+        emoji: "\uD83E\uDDF6",
+        accent: "#3A2A4A",
+        price: "$79",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.7 stars from 154 reviews. \u201CSoft, not itchy.\u201D \u201CColor was a touch darker than the photo.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. (555) 010-5568",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2015",
+        metaFlag: null,
+        tip: "Real shop: a fair home-goods price, card checkout, and a review that is not glowing about everything."
+      },
+      {
+        id: "bluespruce-sled",
+        answer: "real",
+        store: "Blue Spruce Outdoors",
+        domain: "www.bluespruceoutdoors.example.com",
+        domainFlag: null,
+        product: "Classic wooden sled",
+        emoji: "\uD83D\uDEF7",
+        accent: "#1E3A2E",
+        price: "$89",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.5 stars from 96 reviews. \u201CSteers well on packed snow.\u201D \u201CHeavy, as a real wood sled should be.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day unused returns. (555) 010-6679 or gear@bluespruceoutdoors.example.com",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Outfitter since 2004",
+        metaFlag: null,
+        tip: "Real shop: a sensible price for wood gear, a matching domain, and a phone number."
+      },
+      {
+        id: "copper-cocoa",
+        answer: "real",
+        store: "Copper Kettle Goods",
+        domain: "www.copperkettlegoods.example.com",
+        domainFlag: null,
+        product: "Hot cocoa crate (4 mixes)",
+        emoji: "\uD83C\uDF6B",
+        accent: "#5A3A1E",
+        price: "$26",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.6 stars from 288 reviews. \u201CThe mint mix is our favorite.\u201D \u201COne packet was dusty in the box.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day unopened returns. (555) 010-7780",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2013",
+        metaFlag: null,
+        tip: "Real shop: everyday gift pricing, ordinary payment, and ordinary mixed reviews."
+      },
+      {
+        id: "harvest-game",
+        answer: "real",
+        store: "Harvest Board Games",
+        domain: "www.harvestboardgames.example.org",
+        domainFlag: null,
+        product: "Snow-night family board game",
+        emoji: "\uD83C\uDFB2",
+        accent: "#2E3A4A",
+        price: "$38",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.4 stars from 173 reviews. \u201CFun in about 45 minutes.\u201D \u201CRules took one pass to click.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. (555) 010-8891 or hello@harvestboardgames.example.org",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Publisher shop online since 2008",
+        metaFlag: null,
+        tip: "Real shop: a normal game price, a matching domain, and reviews that mention a small learning curve."
+      },
+      {
+        id: "pinecone-scarf",
+        answer: "real",
+        store: "Pinecone Woolens",
+        domain: "www.pineconewoolens.example.com",
+        domainFlag: null,
+        product: "Holiday wool scarf",
+        emoji: "\uD83E\uDDE3",
+        accent: "#3A2A28",
+        price: "$42",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.5 stars from 201 reviews. \u201CWarm without feeling bulky.\u201D \u201CThe fringe loosened after a few wears.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns. (555) 010-9902 or care@pineconewoolens.example.com",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2006",
+        metaFlag: null,
+        tip: "Real shop: a fair scarf price, ordinary card payment, mixed reviews, and a domain that matches the shop name."
+      },
+      {
+        id: "cozycedar-steal",
+        answer: "scam",
+        store: "Cozy Cedar Steals",
+        domain: "www.cedarandc0zy.example.com",
+        domainFlag: "domain",
+        product: "Merino holiday sweater",
+        emoji: "\uD83E\uDDF6",
+        accent: "#2E4A3A",
+        price: "$9",
+        wasPrice: "$128",
+        priceFlag: "price",
+        reviews: "4.1 stars from 64 reviews. \u201CSoft.\u201D \u201CShipped in a week.\u201D",
+        reviewsFlag: null,
+        payment: "Gift cards only. Email the codes after you check out.",
+        paymentFlag: "payment",
+        contact: "Questions by email after payment",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since last fall",
+        metaFlag: null,
+        tip: "Scam shop: the address uses a 0 in place of the letter o, the sweater is almost free, and they will only take gift-card codes \u2014 three classic tells."
+      },
+      {
+        id: "brightwick-typo",
+        answer: "scam",
+        store: "Brightwick Kitchen",
+        domain: "www.brightwickkltchen.example.com",
+        domainFlag: "domain",
+        product: "Ceramic cocoa mug set (2)",
+        emoji: "\u2615",
+        accent: "#5A3A28",
+        price: "$30",
+        wasPrice: "$36",
+        priceFlag: null,
+        reviews: "5.0 stars from 14 reviews. \u201CAmazing!!!\u201D \u201CAmazing!!!\u201D \u201CAmazing!!!\u201D",
+        reviewsFlag: "reviews",
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "30-day returns listed, no phone given",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2016",
+        metaFlag: null,
+        tip: "Scam shop: the address has an extra letter (kltchen), and every review is the same three words with five stars."
+      },
+      {
+        id: "wire-sleds",
+        answer: "scam",
+        store: "Spruce Deal Outdoors",
+        domain: "www.sprucedealoutdoors.example.com",
+        domainFlag: null,
+        product: "Classic wooden sled",
+        emoji: "\uD83D\uDEF7",
+        accent: "#1E3A2E",
+        price: "$19",
+        wasPrice: "$189",
+        priceFlag: "price",
+        reviews: "4.0 stars from 22 reviews. \u201CLooks nice in the photo.\u201D",
+        reviewsFlag: null,
+        payment: "Wire transfer or crypto only. No cards accepted.",
+        paymentFlag: "payment",
+        contact: "Refunds considered after delivery",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2020",
+        metaFlag: null,
+        tip: "Scam shop: a wood sled will not really cost $19, and a real store will take a card \u2014 wire or crypto-only checkout is a hard stop."
+      },
+      {
+        id: "new-wraps",
+        answer: "scam",
+        store: "QuickWrap Gifts",
+        domain: "www.quickwrapgifts.example.net",
+        domainFlag: null,
+        product: "Wrapping paper sampler (8 sheets)",
+        emoji: "\uD83C\uDF81",
+        accent: "#4A2E3A",
+        price: "$14",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.2 stars from 9 reviews. \u201CPretty.\u201D \u201CFine.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "All sales final. No phone, email, or return policy listed.",
+        contactFlag: "contact",
+        banner: "",
+        bannerFlag: null,
+        meta: "Store opened this week",
+        metaFlag: "newsite",
+        tip: "Scam shop: the store opened this week and there is no way to get in touch or send anything back. A brand-new site with no contact line is a warning."
+      },
+      {
+        id: "flash-toys",
+        answer: "scam",
+        store: "Flash Ember Toys",
+        domain: "www.flashembertoys.example.com",
+        domainFlag: null,
+        product: "Wooden holiday train set",
+        emoji: "\uD83D\uDE82",
+        accent: "#4A341F",
+        price: "$49",
+        wasPrice: "$54",
+        priceFlag: null,
+        reviews: "5.0 stars from 18 reviews. \u201CBest toy ever best toy ever.\u201D \u201CBest toy ever best toy ever.\u201D \u201CBest toy ever best toy ever.\u201D",
+        reviewsFlag: "reviews",
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Help form on this page",
+        contactFlag: null,
+        banner: "ONLY 2 LEFT \u2014 sale ends in 00:07 or this price is gone!",
+        bannerFlag: "urgency",
+        meta: "Online since 2018",
+        metaFlag: null,
+        tip: "Scam shop: a ticking 00:07 countdown is fake pressure, and every review is the same sentence with a perfect five-star score."
+      },
+      {
+        id: "adonly-cocoa",
+        answer: "scam",
+        store: "Kettle Glow Shop",
+        domain: "www.kettleglowshop.example.com",
+        domainFlag: null,
+        product: "Hot cocoa crate (4 mixes)",
+        emoji: "\uD83C\uDF6B",
+        accent: "#5A3A1E",
+        price: "$24",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.3 stars from 31 reviews. \u201CSweet.\u201D \u201CArrived.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Message the account that ran the ad. No store phone or email.",
+        contactFlag: "contact",
+        banner: "",
+        bannerFlag: null,
+        meta: "Only sold through social media ads. No other storefront.",
+        metaFlag: "social",
+        tip: "Scam shop: it only exists in a social media ad, and the only way to \u201Ccontact\u201D them is to message that same ad. Real shops have a site and a phone or email of their own."
+      },
+      {
+        id: "new-lights",
+        answer: "scam",
+        store: "Glow Rush Home",
+        domain: "www.glowrushhome.example.com",
+        domainFlag: null,
+        product: "Indoor string lights (20 ft)",
+        emoji: "\u2728",
+        accent: "#1F3B4A",
+        price: "$6",
+        wasPrice: "$79",
+        priceFlag: "price",
+        reviews: "4.0 stars from 8 reviews. \u201CBright.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Support after the package ships",
+        contactFlag: null,
+        banner: "Hurry! 4 left at this price \u2014 timer at 00:04",
+        bannerFlag: "urgency",
+        meta: "Domain registered yesterday",
+        metaFlag: "newsite",
+        tip: "Scam shop: lights are not really $6, the site was registered yesterday, and a 00:04 countdown is there to rush you."
+      },
+      {
+        id: "harbor-lookalike",
+        answer: "scam",
+        store: "Harbor Lane Books",
+        domain: "www.harborlanebooks.examp1e.com",
+        domainFlag: "domain",
+        product: "Winter baking cookbook",
+        emoji: "\uD83D\uDCD8",
+        accent: "#3B2F4A",
+        price: "$22",
+        wasPrice: "$24",
+        priceFlag: null,
+        reviews: "4.5 stars from 40 reviews. \u201CGood recipes.\u201D",
+        reviewsFlag: null,
+        payment: "Gift card or cryptocurrency only",
+        paymentFlag: "payment",
+        contact: "Desk hours listed without a number",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Family-run bookshop",
+        metaFlag: null,
+        tip: "Scam shop: look closely at the ending \u2014 it is examp1e.com with a 1, not example.com \u2014 and they will only take a gift card or crypto."
+      },
+      {
+        id: "social-blankets",
+        answer: "scam",
+        store: "Twine Drop Shop",
+        domain: "www.twinedropshop.example.org",
+        domainFlag: null,
+        product: "Knit throw blanket",
+        emoji: "\uD83E\uDDF6",
+        accent: "#3A2A4A",
+        price: "$75",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "5.0 stars from 12 reviews. \u201CLove it love it love it.\u201D \u201CLove it love it love it.\u201D \u201CLove it love it love it.\u201D",
+        reviewsFlag: "reviews",
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Returns if unused",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Found this shop in a sponsored post. No retail address.",
+        metaFlag: "social",
+        tip: "Scam shop: it turned up only in a sponsored post, and every review is the same four words with a perfect score."
+      },
+      {
+        id: "crypto-games",
+        answer: "scam",
+        store: "Harvest Deal Games",
+        domain: "www.harvestdealgames.example.org",
+        domainFlag: null,
+        product: "Snow-night family board game",
+        emoji: "\uD83C\uDFB2",
+        accent: "#2E3A4A",
+        price: "$36",
+        wasPrice: "$38",
+        priceFlag: null,
+        reviews: "4.1 stars from 19 reviews. \u201CFun box art.\u201D",
+        reviewsFlag: null,
+        payment: "Cryptocurrency only. Codes sent after transfer.",
+        paymentFlag: "payment",
+        contact: "Chat window on this page",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Store opened this week",
+        metaFlag: "newsite",
+        tip: "Scam shop: a brand-new store that will only take crypto is asking you to send money you cannot get back."
+      },
+      {
+        id: "odd-tld-beanie",
+        answer: "scam",
+        store: "Northpine Outfitters",
+        domain: "www.northpineoutfitters.example.cm",
+        domainFlag: "domain",
+        product: "Wool winter beanie",
+        emoji: "\uD83E\uDDE2",
+        accent: "#1E3A5F",
+        price: "$26",
+        wasPrice: "$28",
+        priceFlag: null,
+        reviews: "4.3 stars from 27 reviews. \u201CWarm.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Care team on this page",
+        contactFlag: null,
+        banner: "Checkout in 00:06 to keep this winter price!",
+        bannerFlag: "urgency",
+        meta: "Online since 2009",
+        metaFlag: null,
+        tip: "Scam shop: the ending is example.cm, not example.com, and a 00:06 countdown is there to keep you from noticing."
+      },
+      {
+        id: "cheap-cookies",
+        answer: "scam",
+        store: "Snowbell Bargain Tin",
+        domain: "www.snowbellbargaintin.example.com",
+        domainFlag: null,
+        product: "Holiday cookie tin (shipped fresh)",
+        emoji: "\uD83C\uDF6A",
+        accent: "#5A2E2E",
+        price: "$4",
+        wasPrice: "$29",
+        priceFlag: "price",
+        reviews: "4.0 stars from 11 reviews. \u201CCheap.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "No returns. No phone or email listed.",
+        contactFlag: "contact",
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2019",
+        metaFlag: null,
+        tip: "Scam shop: a fresh cookie tin is not $4, and there is no phone, email, or way to send it back if something is wrong."
+      },
+      {
+        id: "extra-words-pets",
+        answer: "scam",
+        store: "Meadowlark Pets",
+        domain: "login-deals-meadowlarkpets.example.net",
+        domainFlag: "domain",
+        product: "Holiday knit dog sweater",
+        emoji: "\uD83D\uDC36",
+        accent: "#3A4A2A",
+        price: "$20",
+        wasPrice: "$22",
+        priceFlag: null,
+        reviews: "5.0 stars from 16 reviews. \u201CPerfect perfect perfect.\u201D \u201CPerfect perfect perfect.\u201D \u201CPerfect perfect perfect.\u201D",
+        reviewsFlag: "reviews",
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Help desk on this page",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since 2012",
+        metaFlag: null,
+        tip: "Scam shop: extra words (login-deals) are tacked onto the address, and the reviews are identical five-star lines."
+      },
+      {
+        id: "social-rush-mugs",
+        answer: "scam",
+        store: "Mug Drop Daily",
+        domain: "www.mugdropdaily.example.com",
+        domainFlag: null,
+        product: "Ceramic cocoa mug set (2)",
+        emoji: "\u2615",
+        accent: "#5A3A28",
+        price: "$18",
+        wasPrice: null,
+        priceFlag: null,
+        reviews: "4.2 stars from 7 reviews. \u201CCute.\u201D",
+        reviewsFlag: null,
+        payment: "Credit or debit card",
+        paymentFlag: null,
+        contact: "Replies through the ad you tapped",
+        contactFlag: null,
+        banner: "Live deal \u2014 3 sets left, clock at 00:08",
+        bannerFlag: "urgency",
+        meta: "Only sold through social media ads. Store opened this week.",
+        metaFlag: "social",
+        tip: "Scam shop: it is a week-old page that only lives in social ads, and a live 00:08 clock is pushing you to buy before you can look around."
+      },
+      {
+        id: "giftcard-candles",
+        answer: "scam",
+        store: "Wick Flash Deals",
+        domain: "www.wickflashdeals.example.com",
+        domainFlag: null,
+        product: "Pine candle trio",
+        emoji: "\uD83D\uDD6F",
+        accent: "#2A3B2E",
+        price: "$8",
+        wasPrice: "$64",
+        priceFlag: "price",
+        reviews: "4.1 stars from 13 reviews. \u201CSmells fine.\u201D",
+        reviewsFlag: null,
+        payment: "Gift cards only. Send photos of the back of each card.",
+        paymentFlag: "payment",
+        contact: "Email after you send payment",
+        contactFlag: null,
+        banner: "",
+        bannerFlag: null,
+        meta: "Online since last month",
+        metaFlag: null,
+        tip: "Scam shop: a candle set is not really $8, and asking you to send photos of gift cards is a way to empty them."
+      }
+    ];
+
+    var screenStart = document.getElementById("screen-start");
+    var screenPlay = document.getElementById("screen-play");
+    var screenEnd = document.getElementById("screen-end");
+    var startBest = document.getElementById("start-best");
+    var btnPlay = document.getElementById("btn-play");
+    var btnAgain = document.getElementById("btn-again");
+    var btnReal = document.getElementById("btn-real");
+    var btnScam = document.getElementById("btn-scam");
+    var hudScore = document.getElementById("hud-score");
+    var hudProgress = document.getElementById("hud-progress");
+    var hudTime = document.getElementById("hud-time");
+    var hudStreak = document.getElementById("hud-streak");
+    var timerEl = document.getElementById("timer");
+    var timerFill = document.getElementById("timer-fill");
+    var flagCountEl = document.getElementById("flag-count");
+    var shopCard = document.getElementById("shop-card");
+    var shopPane = document.getElementById("shop-pane");
+    var shopStore = document.getElementById("shop-store");
+    var shopDomain = document.getElementById("shop-domain");
+    var shopBanner = document.getElementById("shop-banner");
+    var shopArt = document.getElementById("shop-art");
+    var shopProduct = document.getElementById("shop-product");
+    var shopPrice = document.getElementById("shop-price");
+    var shopReviews = document.getElementById("shop-reviews");
+    var shopPayment = document.getElementById("shop-payment");
+    var shopContact = document.getElementById("shop-contact");
+    var shopMeta = document.getElementById("shop-meta");
+    var feedbackEl = document.getElementById("feedback");
+    var feedbackAnswer = document.getElementById("feedback-answer");
+    var feedbackVerdict = document.getElementById("feedback-verdict");
+    var feedbackFlags = document.getElementById("feedback-flags");
+    var feedbackTip = document.getElementById("feedback-tip");
+    var choicesEl = document.getElementById("choices");
+
+    var deck = [];
+    var index = 0;
+    var score = 0;
+    var streak = 0;
+    var correctCount = 0;
+    var answeredCount = 0;
+    var flagsFoundTotal = 0;
+    var flagsPossibleTotal = 0;
+    var misses = [];
+    var locked = false;
+    var timerId = null;
+    var timeLeft = 0;
+    var timeLimit = START_SECONDS;
+    var lastTick = 0;
+    var audioCtx = null;
+    var swipeStart = null;
+
+    function readBest() {
+      try {
+        var n = parseInt(localStorage.getItem(BEST_KEY), 10);
+        return isNaN(n) ? 0 : n;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    function writeBest(value) {
+      try {
+        localStorage.setItem(BEST_KEY, String(value));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function unlockAudio() {
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (err) {
+        audioCtx = null;
+      }
+    }
+
+    function beep(freq, seconds, wave, volume) {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = wave || "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(volume || 0.07, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + seconds);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + seconds);
+      } catch (err) { /* sound is optional */ }
+    }
+
+    function soundCorrect() {
+      beep(523, 0.12, "sine", 0.07);
+      setTimeout(function () { beep(659, 0.12, "sine", 0.07); }, 90);
+      setTimeout(function () { beep(784, 0.18, "sine", 0.07); }, 180);
+    }
+    function soundWrong() { beep(180, 0.28, "sawtooth", 0.05); }
+    function soundTimeout() { beep(320, 0.35, "triangle", 0.05); }
+
+    function shuffle(list) {
+      var a = list.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+      }
+      return a;
+    }
+
+    function dealRound() {
+      var real = shuffle(SHOPS.filter(function (m) { return m.answer === "real"; }));
+      var scam = shuffle(SHOPS.filter(function (m) { return m.answer === "scam"; }));
+      var per = Math.floor(ROUND_SIZE / 2);
+      return shuffle(real.slice(0, per).concat(scam.slice(0, per)));
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showScreen(which) {
+      screenStart.classList.toggle("hidden", which !== "start");
+      screenPlay.classList.toggle("hidden", which !== "play");
+      screenEnd.classList.toggle("hidden", which !== "end");
+    }
+
+    function answerLabel(value) {
+      if (value === "real") return "Real Shop";
+      if (value === "scam") return "Scam Shop";
+      return value;
+    }
+
+    function flagTotal(shop) {
+      var n = 0;
+      if (shop.domainFlag) n += 1;
+      if (shop.priceFlag) n += 1;
+      if (shop.reviewsFlag) n += 1;
+      if (shop.paymentFlag) n += 1;
+      if (shop.contactFlag) n += 1;
+      if (shop.bannerFlag) n += 1;
+      if (shop.metaFlag) n += 1;
+      return n;
+    }
+
+    function markHtml(text, flagType, markId) {
+      var attr = ' class="mark" data-mark="' + markId + '" tabindex="0" role="button"';
+      if (flagType) attr += ' data-flag="' + flagType + '"';
+      return "<span" + attr + ">" + text + "</span>";
+    }
+
+    function countPicked() {
+      return shopCard.querySelectorAll(".mark.picked").length;
+    }
+
+    function updateFlagCount() {
+      var n = countPicked();
+      flagCountEl.textContent = "Flags marked: " + n;
+      document.body.setAttribute("data-picked", String(n));
+    }
+
+    function updateHud() {
+      hudScore.textContent = score;
+      hudProgress.textContent = (index + 1) + " / " + ROUND_SIZE;
+      hudStreak.textContent = streak >= 2 ? "Streak \u00D7" + streak + "  \u2022  bonus points!" : "";
+    }
+
+    function priceHtml(shop) {
+      var html = escapeHtml(shop.price);
+      if (shop.wasPrice) {
+        html += ' <span class="was-price">normally ' + escapeHtml(shop.wasPrice) + "</span>";
+      }
+      return html;
+    }
+
+    function renderShop(shop) {
+      shopStore.textContent = shop.store;
+      shopArt.textContent = shop.emoji;
+      shopArt.style.setProperty("--art", shop.accent || "#1C3B61");
+      shopProduct.textContent = shop.product;
+
+      shopDomain.innerHTML = markHtml(escapeHtml("https://" + shop.domain), shop.domainFlag, "domain");
+      shopPrice.innerHTML = markHtml(priceHtml(shop), shop.priceFlag, "price");
+      shopReviews.innerHTML = markHtml(escapeHtml(shop.reviews), shop.reviewsFlag, "reviews");
+      shopPayment.innerHTML = markHtml(escapeHtml(shop.payment), shop.paymentFlag, "payment");
+      shopContact.innerHTML = markHtml(escapeHtml(shop.contact), shop.contactFlag, "contact");
+      shopMeta.innerHTML = markHtml(escapeHtml(shop.meta), shop.metaFlag, "meta");
+
+      if (shop.banner) {
+        shopBanner.classList.remove("hidden-banner");
+        shopBanner.innerHTML = markHtml(escapeHtml(shop.banner), shop.bannerFlag, "banner");
+      } else {
+        shopBanner.classList.add("hidden-banner");
+        shopBanner.innerHTML = "";
+      }
+
+      shopPane.classList.remove("is-feedback");
+      updateFlagCount();
+
+      document.body.setAttribute("data-correct", shop.answer);
+      document.body.setAttribute("data-shop-id", shop.id);
+      document.body.setAttribute("data-flags-total", String(flagTotal(shop)));
+      document.body.setAttribute("data-phase", "playing");
+    }
+
+    function stopTimer() {
+      if (timerId) {
+        cancelAnimationFrame(timerId);
+        timerId = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      timeLimit = Math.max(MIN_SECONDS, START_SECONDS - index * TIME_STEP);
+      timeLeft = timeLimit;
+      lastTick = performance.now();
+      timerEl.classList.remove("warn", "danger");
+      timerFill.style.transform = "scaleX(1)";
+      hudTime.textContent = String(Math.ceil(timeLeft));
+
+      function tick(now) {
+        var dt = (now - lastTick) / 1000;
+        lastTick = now;
+        timeLeft -= dt;
+        var pct = Math.max(0, timeLeft / timeLimit);
+        timerFill.style.transform = "scaleX(" + pct + ")";
+        timerEl.classList.toggle("warn", pct < 0.4 && pct >= 0.2);
+        timerEl.classList.toggle("danger", pct < 0.2);
+        hudTime.textContent = String(Math.max(0, Math.ceil(timeLeft)));
+        if (timeLeft <= 0) {
+          timerId = null;
+          settleAnswer(null, true);
+          return;
+        }
+        timerId = requestAnimationFrame(tick);
+      }
+      timerId = requestAnimationFrame(tick);
+    }
+
+    function setChoicesEnabled(on) {
+      btnReal.disabled = !on;
+      btnScam.disabled = !on;
+    }
+
+    function showShop() {
+      locked = false;
+      setChoicesEnabled(true);
+      choicesEl.classList.remove("hidden");
+      feedbackEl.classList.remove("show", "ok", "bad");
+      renderShop(deck[index]);
+      updateHud();
+      startTimer();
+    }
+
+    function readPicks(shop) {
+      var found = [];
+      var missed = [];
+      var wrong = [];
+      shopCard.querySelectorAll(".mark").forEach(function (el) {
+        var flag = el.getAttribute("data-flag");
+        var picked = el.classList.contains("picked");
+        if (flag) {
+          el.classList.add("was-flag");
+          if (picked) found.push(flag);
+          else missed.push(flag);
+        } else if (picked) {
+          wrong.push(el.getAttribute("data-mark") || "mark");
+        }
+      });
+      return { found: found, missed: missed, wrong: wrong, total: flagTotal(shop) };
+    }
+
+    function describeFlags(picks, timedOut) {
+      var parts = [];
+      if (picks.total === 0) {
+        if (picks.wrong.length === 0) {
+          parts.push("No flags to mark \u2014 this one was a real shop.");
+        } else {
+          parts.push("You marked " + picks.wrong.length + " line" + (picks.wrong.length === 1 ? "" : "s") + ", but nothing here was a trap.");
+        }
+      } else {
+        parts.push("Flags: you found " + picks.found.length + " of " + picks.total + ".");
+        if (picks.found.length) {
+          parts.push("Caught: " + picks.found.map(function (f) { return FLAG_LABELS[f] || f; }).join("; ") + ".");
+        }
+        if (picks.missed.length && !timedOut) {
+          parts.push("Missed: " + picks.missed.map(function (f) { return FLAG_LABELS[f] || f; }).join("; ") + ".");
+        }
+        if (picks.wrong.length) {
+          parts.push("You also marked " + picks.wrong.length + " ordinary line" + (picks.wrong.length === 1 ? "" : "s") + ".");
+        }
+      }
+      return parts.join(" ");
+    }
+
+    function settleAnswer(guess, timedOut) {
+      if (locked) return;
+      locked = true;
+      stopTimer();
+      setChoicesEnabled(false);
+
+      var shop = deck[index];
+      var picks = readPicks(shop);
+      var verdictOk = !timedOut && guess === shop.answer;
+      answeredCount += 1;
+      flagsFoundTotal += picks.found.length;
+      flagsPossibleTotal += picks.total;
+
+      var flagScore = picks.found.length * FLAG_POINTS;
+      var gained = 0;
+      var speedPts = 0;
+      var streakPts = 0;
+      var verdictPts = 0;
+      var verdict;
+
+      if (timedOut) {
+        streak = 0;
+        soundTimeout();
+        verdict = "Time\u2019s up";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "Correct answer: " + answerLabel(shop.answer);
+        misses.push({
+          store: shop.store,
+          domain: shop.domain,
+          guessed: "Timed out",
+          correct: answerLabel(shop.answer),
+          tip: shop.tip
+        });
+      } else if (verdictOk) {
+        streak += 1;
+        correctCount += 1;
+        speedPts = Math.round(SPEED_MAX * Math.max(0, timeLeft) / timeLimit);
+        streakPts = (streak - 1) * STREAK_BONUS;
+        verdictPts = VERDICT_POINTS;
+        gained = verdictPts + speedPts + streakPts + flagScore;
+        score += gained;
+        soundCorrect();
+        verdict = "Correct  +" + gained;
+        feedbackEl.classList.add("ok");
+        feedbackAnswer.textContent = answerLabel(shop.answer);
+      } else {
+        streak = 0;
+        gained = flagScore;
+        score += gained;
+        soundWrong();
+        verdict = gained > 0 ? "Missed the verdict  +" + gained : "Missed it";
+        feedbackEl.classList.add("bad");
+        feedbackAnswer.textContent = "You said " + answerLabel(guess) + " \u00B7 it was " + answerLabel(shop.answer);
+        misses.push({
+          store: shop.store,
+          domain: shop.domain,
+          guessed: answerLabel(guess),
+          correct: answerLabel(shop.answer),
+          tip: shop.tip
+        });
+      }
+
+      shopPane.classList.add("is-feedback");
+      feedbackFlags.textContent = describeFlags(picks, timedOut);
+      feedbackVerdict.textContent = verdict;
+      feedbackTip.textContent = shop.tip;
+      feedbackEl.classList.add("show");
+      choicesEl.classList.add("hidden");
+      updateHud();
+
+      document.body.setAttribute("data-phase", "feedback");
+      document.body.setAttribute("data-last-result", verdictOk ? "correct" : (timedOut ? "timeout" : "wrong"));
+      document.body.setAttribute("data-last-gained", String(gained));
+      document.body.setAttribute("data-last-flag-points", String((timedOut ? 0 : flagScore)));
+      document.body.setAttribute("data-last-verdict-points", String(verdictPts));
+      document.body.setAttribute("data-last-speed-points", String(speedPts));
+      document.body.setAttribute("data-flags-found", String(picks.found.length));
+      document.body.setAttribute("data-flags-total", String(picks.total));
+      document.body.setAttribute("data-wrong-flags", String(picks.wrong.length));
+      document.body.setAttribute("data-missed-flags", String(picks.missed.length));
+      document.body.setAttribute("data-score", String(score));
+      document.body.setAttribute("data-streak", String(streak));
+
+      setTimeout(advance, FEEDBACK_MS);
+    }
+
+    function advance() {
+      if (index >= ROUND_SIZE - 1) {
+        endGame();
+        return;
+      }
+      index += 1;
+      showShop();
+    }
+
+    function rankTitle(correct) {
+      if (correct === ROUND_SIZE) return "Cart Protector";
+      if (correct >= 9) return "Sharp Eye";
+      if (correct >= 7) return "On the Watch";
+      if (correct >= 5) return "Getting There";
+      return "Keep Practicing";
+    }
+
+    function startGame() {
+      unlockAudio();
+      deck = dealRound();
+      index = 0;
+      score = 0;
+      streak = 0;
+      correctCount = 0;
+      answeredCount = 0;
+      flagsFoundTotal = 0;
+      flagsPossibleTotal = 0;
+      misses = [];
+      document.body.setAttribute("data-score", "0");
+      document.body.setAttribute("data-streak", "0");
+      showScreen("play");
+      showShop();
+    }
+
+    function endGame() {
+      stopTimer();
+      document.body.removeAttribute("data-correct");
+      document.body.setAttribute("data-phase", "end");
+      document.body.setAttribute("data-score", String(score));
+
+      var previousBest = readBest();
+      var isNewBest = score > previousBest;
+      var best = isNewBest ? score : previousBest;
+      if (isNewBest) writeBest(best);
+
+      document.getElementById("end-rank").textContent = rankTitle(correctCount);
+      document.getElementById("end-title").textContent = "Round complete \u00B7 " + correctCount + " of " + answeredCount + " correct verdicts";
+      document.getElementById("end-score").textContent = score;
+      document.getElementById("end-accuracy").textContent = correctCount + "/" + answeredCount;
+      document.getElementById("end-flags").textContent = flagsFoundTotal + "/" + flagsPossibleTotal;
+      document.getElementById("end-best").textContent = best;
+      document.getElementById("end-new-best").textContent = isNewBest && score > 0 ? "New best score!" : "";
+
+      var recapTitle = document.getElementById("end-recap-title");
+      var box = document.getElementById("end-misses");
+      if (misses.length === 0) {
+        recapTitle.textContent = "Nice work";
+        box.innerHTML = '<p class="all-clear">You judged every shop correctly. Keep checking the address, the price, the payment options, and a real way to get in touch before you buy.</p>';
+      } else {
+        recapTitle.textContent = "Shops you missed";
+        box.innerHTML = misses.map(function (m) {
+          return '<div class="miss"><div class="miss-head">' +
+            escapeHtml(m.store) + " \u00B7 You: " + escapeHtml(m.guessed) +
+            " \u00B7 Answer: " + escapeHtml(m.correct) +
+            "</div><div class=\"miss-url\">" + escapeHtml(m.domain) +
+            "</div><div class=\"miss-tip\">" + escapeHtml(m.tip) + "</div></div>";
+        }).join("");
+      }
+
+      showScreen("end");
+    }
+
+    function refreshStartBest() {
+      var best = readBest();
+      startBest.textContent = best > 0 ? "Best score: " + best : "";
+    }
+
+    function toggleMark(mark) {
+      if (locked || !mark) return;
+      mark.classList.toggle("picked");
+      updateFlagCount();
+    }
+
+    shopCard.addEventListener("click", function (event) {
+      var mark = event.target.closest(".mark");
+      if (!mark) return;
+      event.preventDefault();
+      toggleMark(mark);
+    });
+
+    shopCard.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      var mark = event.target.closest(".mark");
+      if (!mark) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMark(mark);
+    });
+
+    btnPlay.addEventListener("click", startGame);
+    btnAgain.addEventListener("click", startGame);
+    btnReal.addEventListener("click", function () { settleAnswer("real", false); });
+    btnScam.addEventListener("click", function () { settleAnswer("scam", false); });
+
+    document.addEventListener("keydown", function (event) {
+      var key = event.key;
+      if (key === "Enter") {
+        if (event.target && event.target.closest && event.target.closest(".mark")) return;
+        if (!screenStart.classList.contains("hidden") || !screenEnd.classList.contains("hidden")) {
+          startGame();
+        }
+        return;
+      }
+      if (screenPlay.classList.contains("hidden") || locked) return;
+      if (key === "ArrowLeft" || key === "r" || key === "R") {
+        event.preventDefault();
+        settleAnswer("real", false);
+      } else if (key === "ArrowRight" || key === "s" || key === "S") {
+        event.preventDefault();
+        settleAnswer("scam", false);
+      }
+    });
+
+    shopCard.addEventListener("touchstart", function (event) {
+      if (locked || !event.changedTouches.length) return;
+      if (event.target.closest && event.target.closest(".mark")) { swipeStart = null; return; }
+      var t = event.changedTouches[0];
+      swipeStart = { x: t.clientX, y: t.clientY, time: Date.now() };
+    }, { passive: true });
+
+    shopCard.addEventListener("touchend", function (event) {
+      if (!swipeStart || locked) { swipeStart = null; return; }
+      var t = event.changedTouches[0];
+      var dx = t.clientX - swipeStart.x;
+      var dy = t.clientY - swipeStart.y;
+      var dt = Date.now() - swipeStart.time;
+      swipeStart = null;
+      if (dt > 800) return;
+      var ax = Math.abs(dx);
+      var ay = Math.abs(dy);
+      if (ax < 50 && ay < 50) return;
+      if (ax > ay * 1.15) {
+        settleAnswer(dx < 0 ? "real" : "scam", false);
+      }
+    }, { passive: true });
+
+    refreshStartBest();
+    document.body.setAttribute("data-phase", "start");
+  </script>
+</body>
+</html>
